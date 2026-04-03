@@ -142,7 +142,7 @@ input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 
     <select id="sy2" onchange="renderSum()"></select>
   </div>
   <div class="stitle" style="margin-bottom:6px">員工差勤明細</div>
-  <div class="hint">補休增減：平日＝淨工時−8h；假日/週末有打卡＝淨工時全計補休；全日「補休」假＝−8h。<br>補休餘額≥8h 時特休不可選；特休用完後不可再選。重置後天數及餘額依重置日切割計算。</div>
+  <div class="hint">補休增減：平日＝淨工時−8h；假日/週末有打卡＝淨工時全計補休；全日「補休」假＝−8h。<br>特休用完後不可再選；上課假達到每月上限後不可再選。重置後天數及餘額依重置日切割計算。</div>
   <div class="tw"><table class="dt" id="dtbl"></table></div>
   <div class="anno-box" id="anno-box"></div>
 </div>
@@ -547,7 +547,6 @@ function render(){
     const ac=AVC[ei%AVC.length];
     const {annRemain,annTotal,compBal,classUsed}=state[emp.id];
     const annExhausted=annTotal>0&&annRemain<=0;
-    const compCanCover=compBal>=STD;
 
     let lc={};LT.slice(1).forEach(t=>lc[t]=0);
     let mCompTotal=0;
@@ -583,7 +582,6 @@ function render(){
         let dis=false;
         if(lt==='上課假'&&lt!==leave&&classUsed>=emp.classMax) dis=true;
         if(lt==='特休'&&lt!==leave&&annExhausted) dis=true;
-        if(lt==='特休'&&lt!==leave&&compCanCover) dis=true;
         return `<option value="${lt}"${leave===lt?' selected':''}${dis?' disabled':''} style="${dis?'color:#ccc':''}">${lt||'—'}</option>`;
       }).join('');
 
@@ -849,8 +847,8 @@ function renderSum(){
       <td class="sec-div">${mc}/${emp.classMax}天</td>
       <td class="${rc}">${annUsed}/${annTotal}天</td>
       <td class="sec-div">${annNext?fmtDateFull(annNext):'—'}</td>
-      <td class="${cc}">${mcomp>=0?'+':''}${mcomp}</td>
-      <td class="${bc}">${compBal}</td>
+      <td class="${cc}"><b>${mcomp>=0?'+':''}${mcomp}</b></td>
+      <td class="${bc}"><b>${compBal}</b></td>
       <td>${compNext?fmtDateFull(compNext):'—'}</td>
     </tr>`;
   });
