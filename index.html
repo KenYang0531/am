@@ -748,12 +748,8 @@ function renderSum(){
     const {bal:compBal, nextReset:compNext}=compBalState(emp, periodEnd);
     const bc=compBal>=STD?'cpos':compBal>0?'':'cneg';
 
-    // Monthly comp delta: from start of month to end (or today if this month)
-    const mStart={y,m:m,d:1};
-    const mEnd=now.getFullYear()===y&&now.getMonth()===m
-      ?{y:now.getFullYear(),m:now.getMonth(),d:now.getDate()}
-      :{y,m:m,d:dim(y,m)};
-    const mcomp=compInRange(emp.id, mStart.y,mStart.m,mStart.d, mEnd.y,mEnd.m,mEnd.d);
+    // Monthly comp delta: always use full month (1st to last day)
+    const mcomp=compInRange(emp.id, y,m,1, y,m,dim(y,m));
     const cc=mcomp>0?'cpos':mcomp<0?'cneg':'';
 
     const ms=countLMonth(emp.id,y,m,'病假');
