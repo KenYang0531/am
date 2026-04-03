@@ -555,6 +555,10 @@ function render(){
       <span class="db" onclick="delEmp(${emp.id})" title="刪除">✕</span>
     </td>`;
 
+    // Special leave used in current period (from reset to monthEnd)
+    const {usedDays:annUsedTotal, totalDays:annTotalDays}=annLeaveState(emp, monthEnd);
+    const annExhausted=annTotalDays>0&&annUsedTotal>=annTotalDays;
+
     for(let d=1;d<=days;d++){
       const off=isOff(y,m,d);
       const td=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
@@ -569,14 +573,6 @@ function render(){
       const comp=dayComp(emp.id,y,m,d);
       mCompTotal+=comp;
 
-      // Compute annExhausted up to this specific day (excluding today's own value)
-      // so user can still change today's selection
-      const dayRef=new Date(y,m,d);
-      const {remainDays:remUpToDay, totalDays:totUpToDay}=annLeaveState(emp, dayRef);
-      // If already at 0 and today is NOT already marked as 特休, lock it
-      const usedToday=leave==='特休'?1:0;
-      const annExhaustedForDay=totUpToDay>0&&(remUpToDay+usedToday)<=0;
-
       const cellCls=(off?'offday':'')+(td?(off?' tdy':'tdy'):'');
       // If full-day leave is selected, treat time fields same as off-day (blank placeholder, disabled)
       const isFullDay=FULL_LEAVES.includes(leave);
@@ -588,7 +584,7 @@ function render(){
       let opts=LT.map(lt=>{
         let dis=false;
         if(lt==='上課假'&&lt!==leave&&classUsed>=emp.classMax) dis=true;
-        if(lt==='特休'&&lt!==leave&&annExhaustedForDay) dis=true;
+        if(lt==='特休'&&lt!==leave&&annExhausted) dis=true;
         return `<option value="${lt}"${leave===lt?' selected':''}${dis?' disabled':''} style="${dis?'color:#ccc':''}">${lt||'—'}</option>`;
       }).join('');
 
