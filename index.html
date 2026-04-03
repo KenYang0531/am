@@ -515,11 +515,12 @@ function render(){
   const DW=['日','一','二','三','四','五','六'];
   const tbl=document.getElementById('stbl');
 
-  // Pre-compute per-employee state
+  // Pre-compute per-employee state (use monthEnd so all entries in the month are counted)
+  const monthEnd=new Date(y,m+1,0);
   const state={};
   emps.forEach(e=>{
-    const {remainDays:annRemain, totalDays:annTotal, usedDays:annUsed}=annLeaveState(e, now);
-    const {bal:compBal}=compBalState(e, now);
+    const {remainDays:annRemain, totalDays:annTotal, usedDays:annUsed}=annLeaveState(e, monthEnd);
+    const {bal:compBal}=compBalState(e, monthEnd);
     const classUsed=countL(e.id,y,m,'上課假');
     state[e.id]={annRemain,annTotal,annUsed,compBal,classUsed};
   });
@@ -546,8 +547,6 @@ function render(){
   emps.forEach((emp,ei)=>{
     const ac=AVC[ei%AVC.length];
     const {annRemain,annTotal,compBal,classUsed}=state[emp.id];
-    const annExhausted=annTotal>0&&annRemain<=0;
-
     let lc={};LT.slice(1).forEach(t=>lc[t]=0);
     let mCompTotal=0;
     let row=`<tr><td class="ncc" style="text-align:center">
@@ -570,6 +569,14 @@ function render(){
       const comp=dayComp(emp.id,y,m,d);
       mCompTotal+=comp;
 
+      // Compute annExhausted up to this specific day (excluding today's own value)
+      // so user can still change today's selection
+      const dayRef=new Date(y,m,d);
+      const {remainDays:remUpToDay, totalDays:totUpToDay}=annLeaveState(emp, dayRef);
+      // If already at 0 and today is NOT already marked as 特休, lock it
+      const usedToday=leave==='特休'?1:0;
+      const annExhaustedForDay=totUpToDay>0&&(remUpToDay+usedToday)<=0;
+
       const cellCls=(off?'offday':'')+(td?(off?' tdy':'tdy'):'');
       // If full-day leave is selected, treat time fields same as off-day (blank placeholder, disabled)
       const isFullDay=FULL_LEAVES.includes(leave);
@@ -581,7 +588,7 @@ function render(){
       let opts=LT.map(lt=>{
         let dis=false;
         if(lt==='上課假'&&lt!==leave&&classUsed>=emp.classMax) dis=true;
-        if(lt==='特休'&&lt!==leave&&annExhausted) dis=true;
+        if(lt==='特休'&&lt!==leave&&annExhaustedForDay) dis=true;
         return `<option value="${lt}"${leave===lt?' selected':''}${dis?' disabled':''} style="${dis?'color:#ccc':''}">${lt||'—'}</option>`;
       }).join('');
 
