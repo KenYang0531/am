@@ -676,30 +676,27 @@ const FULL_LEAVES=['特休','病假','事假','補休','上課假'];
 function setLeave(eid,y,m,d,val){
   const k=K(eid,y,m,d);if(!att[k])att[k]={};
   att[k].leave=val;
-  if(FULL_LEAVES.includes(val)){
-    att[k].inH=null;
-    att[k].outH=null;
-    att[k].brk=null;
-  }
+  if(FULL_LEAVES.includes(val)){att[k].inH=null;att[k].outH=null;att[k].brk=null;}
   render();
-  saveData();
+  apiSetAtt(k,att[k]);
 }
 function setBreak(eid,y,m,d,val){
   const k=K(eid,y,m,d);if(!att[k])att[k]={};
   att[k].brk=parseH(val);
   render();
-  saveData();
+  apiSetAtt(k,att[k]);
 }
 function setTime(eid,y,m,d,which,val){
   const k=K(eid,y,m,d);if(!att[k])att[k]={};
   att[k][which==='in'?'inH':'outH']=parseH(val);
   render();
-  saveData();
+  apiSetAtt(k,att[k]);
 }
 function delEmp(id){
-  if(confirm('確定刪除此員工？')) emps=emps.filter(e=>e.id!==id);
+  if(!confirm('確定刪除此員工？')) return;
+  emps=emps.filter(e=>e.id!==id);
   render();
-  saveData();
+  apiDelEmp(id);
 }
 
 // ── Summary ──
@@ -909,11 +906,14 @@ function saveEmp(){
   if(editEmpId!=null){
     const e=emps.find(x=>x.id===editEmpId);
     e.name=n;e.joinDate=j;e.classMax=cm;e.compBal=cb;
+    closeEmpModal();render();
+    apiSaveEmp(e);
   } else {
-    emps.push({id:nid++,name:n,joinDate:j,classMax:cm,compBal:cb});
+    const newEmp={id:nid++,name:n,joinDate:j,classMax:cm,compBal:cb};
+    emps.push(newEmp);
+    closeEmpModal();render();
+    apiSaveEmp(newEmp);
   }
-  closeEmpModal();render();
-  saveData();
 }
 
 // ── Google Sheets API ──
@@ -925,7 +925,63 @@ function setStatus(msg,isErr){
   el.textContent=msg;
   el.style.color=isErr?'#b82020':'#1a7a50';
   el.style.opacity='1';
-  if(!isErr) setTimeout(()=>{el.style.opacity='0';},2000);
+  if(!isErr) setTimeout(()=>{el.style.opacity='0';},2500);
+}
+
+async function apiPost(body){
+  const res=await fetch(API_URL,{method:'POST',body:JSON.stringify(body)});
+  const data=await res.json();
+  if(data.error) throw new Error(data.error);
+  return data;
+}
+
+// Debounce map: key → timer, so rapid edits to the same cell only fire once
+const _debouncers={};
+function debounce(id, fn, delay=800){
+  clearTimeout(_debouncers[id]);
+  _debouncers[id]=setTimeout(fn, delay);
+}
+
+async function apiSetAtt(key, val){
+  // If all fields are empty, delete the row instead
+  const isEmpty=!val.leave&&val.inH==null&&val.outH==null&&val.brk==null;
+  setStatus('…');
+  debounce('att:'+key, async()=>{
+    setStatus('儲存中…');
+    try{
+      if(isEmpty){
+        await apiPost({action:'delAttendance', key});
+      } else {
+        await apiPost({action:'setAttendance', key, val});
+      }
+      setStatus('已儲存 ✓');
+    } catch(err){
+      setStatus('儲存失敗：'+err.message, true);
+      console.error(err);
+    }
+  });
+}
+
+async function apiSaveEmp(emp){
+  setStatus('儲存中…');
+  try{
+    await apiPost({action:'saveEmployee', emp});
+    setStatus('已儲存 ✓');
+  } catch(err){
+    setStatus('儲存失敗：'+err.message, true);
+    console.error(err);
+  }
+}
+
+async function apiDelEmp(id){
+  setStatus('儲存中…');
+  try{
+    await apiPost({action:'delEmployee', id:String(id)});
+    setStatus('已儲存 ✓');
+  } catch(err){
+    setStatus('儲存失敗：'+err.message, true);
+    console.error(err);
+  }
 }
 
 async function loadData(){
@@ -934,7 +990,7 @@ async function loadData(){
     const res=await fetch(`${API_URL}?action=getAll`);
     const data=await res.json();
     if(data.error) throw new Error(data.error);
-    if(data.employees && data.employees.length>0){
+    if(data.employees&&data.employees.length>0){
       emps=data.employees.map(e=>({
         id:+e.id, name:e.name, joinDate:e.joinDate,
         classMax:+e.classMax||0, compBal:+e.compBal||0
@@ -950,7 +1006,6 @@ async function loadData(){
           outH:val.outH!==''&&val.outH!=null?+val.outH:null,
           brk:val.brk!==''&&val.brk!=null?+val.brk:null
         };
-        // Clean up empty leave
         if(att[key].leave==='') delete att[key].leave;
       });
     }
@@ -960,34 +1015,6 @@ async function loadData(){
     console.error(err);
   }
   render();
-}
-
-let saveTimer=null;
-function saveData(){
-  // Debounce: wait 1.5s after last change before saving
-  clearTimeout(saveTimer);
-  setStatus('…');
-  saveTimer=setTimeout(async()=>{
-    setStatus('儲存中…');
-    try{
-      // Clean att: remove keys where all fields are empty/null
-      const cleanAtt={};
-      Object.entries(att).forEach(([k,v])=>{
-        if(v.leave||(v.inH!=null)||(v.outH!=null)||(v.brk!=null))
-          cleanAtt[k]=v;
-      });
-      const res=await fetch(API_URL,{
-        method:'POST',
-        body:JSON.stringify({action:'saveAll',data:{employees:emps,attendance:cleanAtt}})
-      });
-      const data=await res.json();
-      if(data.error) throw new Error(data.error);
-      setStatus('已儲存 ✓');
-    } catch(err){
-      setStatus('儲存失敗：'+err.message, true);
-      console.error(err);
-    }
-  },1500);
 }
 
 initSel();loadData();
