@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>差勤管理系統</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f3f3f1;color:#1a1a1a;font-size:14px}
+.app{max-width:1800px;margin:0 auto;padding:20px 16px}
+h1{font-size:20px;font-weight:600;margin-bottom:18px}
+.tabs{display:flex;margin-bottom:18px;border-bottom:1.5px solid #ddd}
+.tb{padding:9px 22px;font-size:14px;border:none;background:transparent;cursor:pointer;color:#888;border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
+.tb.on{color:#111;border-bottom-color:#111;font-weight:500}
+.tb:hover:not(.on){color:#333}
+.pg{display:none}.pg.on{display:block}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.topbar label{font-size:13px;color:#666}
+select{font-size:13px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#111;height:32px;cursor:pointer}
+input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#111;height:32px}
+.bsm{font-size:13px;padding:5px 14px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#111;cursor:pointer;height:32px}
+.bsm:hover{background:#ebebea}
+.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:4px;font-size:11px;color:#666}
+.leg-dot{width:12px;height:12px;border-radius:2px;flex-shrink:0}
+
+/* ── Schedule table ── */
+.sw{overflow-x:auto;border:1px solid #e0e0de;border-radius:10px;background:#fff}
+.st{border-collapse:collapse;font-size:11px;table-layout:fixed}
+.st th{background:#f6f6f4;padding:4px 2px;font-size:10px;font-weight:500;color:#555;text-align:center;
+  border-bottom:1px solid #e4e4e2;border-right:1px solid #e4e4e2;white-space:nowrap;line-height:1.4;overflow:hidden}
+.st th.nc{text-align:center;padding:4px;position:sticky;left:0;z-index:3;background:#f6f6f4}
+.st th.mc{text-align:left;padding-left:8px}
+.st td{padding:2px 2px;border-bottom:1px solid #e4e4e2;border-right:1px solid #e4e4e2;vertical-align:top;overflow:hidden}
+.st td.ncc{text-align:center;padding:6px 6px;font-weight:500;font-size:13px;white-space:nowrap;
+  position:sticky;left:0;background:#fff;z-index:2;vertical-align:middle}
+.st td.mcc{padding:4px 8px;vertical-align:middle}
+.st tr:last-child td{border-bottom:none}
+.st td:last-child,.st th:last-child{border-right:none}
+
+/* ── Day cell ── */
+.dc{display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:3px 3px;width:100%;overflow:hidden}
+.lv-sel{font-size:10px;width:100%;height:21px;padding:0 2px;border-radius:3px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#111;min-width:0}
+.lv-sel:focus{outline:1px solid #4a90d9}
+.time-stack{display:flex;flex-direction:column;gap:2px;width:100%}
+.time-field{display:flex;align-items:center;gap:2px;width:100%}
+.time-lbl{font-size:9px;color:#bbb;width:11px;flex-shrink:0;text-align:right;line-height:1}
+.ti{font-size:10px;flex:1;min-width:0;width:0;height:20px;padding:0 2px;border-radius:2px;border:1px solid #ddd;text-align:center;background:#fff;color:#111}
+.ti:focus{outline:1px solid #4a90d9;border-color:#4a90d9}
+.ti.has-val{border-color:#999;background:#f7f7f5;font-weight:600}
+.comp-tag{font-size:9px;font-weight:600;border-radius:2px;padding:1px 3px;line-height:1.4;white-space:nowrap;text-align:center;margin-top:1px}
+.cp{background:#e2f5e8;color:#1a6a35}
+.cn{background:#fde8e8;color:#8a1a1a}
+.cz{background:#f0f0ee;color:#777}
+.offday{background:#ffeae0}
+.tdy{background:#ddeeff!important}
+
+/* ── Leave badges ── */
+.bx{display:inline-block;font-size:10px;padding:1px 5px;border-radius:3px;font-weight:500;white-space:nowrap;margin:1px 1px}
+.b特休{background:#ddeeff;color:#1a5a9a}
+.b病假{background:#fef0da;color:#7a4a0a}
+.b事假{background:#eeecff;color:#4a3899}
+.b補休{background:#e8f5e2;color:#2a5e15}
+.b上課假{background:#fde8f2;color:#7a2060}
+
+/* ── Summary table ── */
+.tw{border:1px solid #e0e0de;border-radius:10px;overflow:hidden;overflow-x:auto;background:#fff}
+.dt{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap;table-layout:fixed}
+.dt th{background:#f6f6f4;padding:9px 6px;font-size:11px;font-weight:500;color:#888;text-align:center;
+  border-bottom:1px solid #e4e4e2}
+.dt th.sec-head{background:#eeeef0;color:#555;font-size:11px;font-weight:600;letter-spacing:.3px;border-top:2px solid #d0d0d4}
+.dt td{padding:9px 6px;border-bottom:1px solid #e4e4e2;color:#111;text-align:center;overflow:hidden;text-overflow:ellipsis}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:#f9f9f7}
+.dt .sec-div{border-right:2px solid #d8d8dc}
+.rok{color:#1a7a50;font-weight:600}.rlo{color:#b87010;font-weight:600}.rno{color:#b82020;font-weight:600}
+.cpos{color:#1a6a35;font-weight:600}.cneg{color:#b82020;font-weight:600}
+
+/* ── Annotations ── */
+.anno-box{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.anno{font-size:12px;color:#555;background:#fff8f0;border-left:3px solid #e8a060;border-radius:0 6px 6px 0;padding:8px 12px;line-height:1.7}
+.anno strong{color:#b85000}
+
+/* ── Avatar / misc ── */
+.av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;margin-right:6px;vertical-align:middle;flex-shrink:0}
+.db{font-size:11px;color:#bbb;cursor:pointer;margin-left:4px;opacity:.5}
+.db:hover{opacity:1;color:#c00}
+.eb{font-size:12px;color:#aaa;cursor:pointer;margin-left:4px}
+.eb:hover{color:#333}
+.hint{font-size:12px;color:#999;margin-bottom:10px;line-height:1.6}
+.stitle{font-size:14px;font-weight:600;margin-bottom:5px}
+.tip{font-size:11px;color:#aaa}
+
+/* ── Modal ── */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center}
+.mbg.on{display:flex}
+.md{background:#fff;border-radius:12px;border:1px solid #ddd;padding:24px;width:400px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.14)}
+.md h3{font-size:16px;font-weight:600;margin-bottom:14px}
+.md label{font-size:13px;color:#555;display:block;margin-top:12px;margin-bottom:3px}
+.md input,.md select{width:100%}
+.md .sub{font-size:11px;color:#aaa;margin-top:3px}
+.mbtns{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.bpri{padding:7px 20px;border-radius:7px;border:none;background:#111;color:#fff;font-size:13px;cursor:pointer}
+.bpri:hover{background:#333}
+.bcan{padding:7px 20px;border-radius:7px;border:1px solid #ccc;background:transparent;color:#666;font-size:13px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>差勤管理系統</h1>
+<div class="tabs">
+  <button class="tb on" onclick="showPg('schedule',this)">月份時間表</button>
+  <button class="tb" onclick="showPg('summary',this)">差勤總表</button>
+  <span id="sync-status" style="margin-left:auto;font-size:12px;color:#1a7a50;padding:10px 4px;transition:opacity 1s;opacity:0"></span>
+</div>
+
+<!-- SCHEDULE -->
+<div class="pg on" id="pg-schedule">
+  <div class="topbar">
+    <label>月份</label>
+    <select id="sm" onchange="render()"></select>
+    <select id="sy" onchange="render()"></select>
+    <button class="bsm" onclick="openEmpModal()">＋ 新增員工</button>
+    <span id="sync-status" style="font-size:12px;color:#1a7a50;margin-left:8px;transition:opacity 0.5s"></span>
+  </div>
+  <div class="topbar" style="margin-top:-6px;margin-bottom:10px">
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#fff;border:1px solid #ddd"></div>平日</div>
+      <div class="leg"><div class="leg-dot" style="background:#ffeae0"></div>假日／週末</div>
+      <div class="leg"><div class="leg-dot" style="background:#ddeeff"></div>今天</div>
+      <span class="tip" style="margin-left:8px">時間格式：HH:MM 或 HHMM（如 18:30 或 1830）；平日預設 10:00–19:00；假日空白；↑↓ 以 0.5h 調整</span>
+    </div>
+  </div>
+  <div class="sw"><table class="st" id="stbl"></table></div>
+</div>
+
+<!-- SUMMARY -->
+<div class="pg" id="pg-summary">
+  <div class="topbar">
+    <label>月份</label>
+    <select id="sm2" onchange="renderSum()"></select>
+    <select id="sy2" onchange="renderSum()"></select>
+  </div>
+  <div class="stitle" style="margin-bottom:6px">員工差勤明細</div>
+  <div class="hint">補休增減：平日＝淨工時−8h；假日/週末有打卡＝淨工時全計補休；全日「補休」假＝−8h。<br>補休餘額≥8h 時特休不可選；特休用完後不可再選。重置後天數及餘額依重置日切割計算。</div>
+  <div class="tw"><table class="dt" id="dtbl"></table></div>
+  <div class="anno-box" id="anno-box"></div>
+</div>
+</div>
+
+<!-- EMPLOYEE MODAL -->
+<div class="mbg" id="memp">
+  <div class="md">
+    <h3 id="memp-title">新增員工</h3>
+    <label>姓名</label>
+    <input type="text" id="e-name" placeholder="員工姓名"/>
+    <label>到職日期</label>
+    <input type="date" id="e-join"/>
+    <label>每月上課假上限（天）</label>
+    <input type="number" id="e-classmax" value="2" min="0" max="31"/>
+    <label>補休餘額基數（小時）</label>
+    <input type="number" id="e-compbal" value="0" step="0.5"/>
+    <div class="sub" id="e-compbal-hint"></div>
+    <div class="mbtns">
+      <button class="bcan" onclick="closeEmpModal()">取消</button>
+      <button class="bpri" id="e-save-btn" onclick="saveEmp()">新增</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_IN=10.0, DEFAULT_OUT=19.0, DEFAULT_BRK=1.0, STD=8, STEP=0.5;
+const LT=['','特休','病假','事假','補休','上課假'];
+const AVC=[
+  ['#ddeeff','#1a5a9a'],['#eeecff','#4a3899'],['#e8f5e2','#2a5e15'],
+  ['#fef0da','#7a4a0a'],['#fde8f2','#7a2060'],['#f0f0ee','#444']
+];
+
+// Taiwan calendar 2024-2026: 1=off (放假), 2=forced workday (補班)
+// 2026起全面取消補班，只有補假，所以2026無值=2的項目
+// 2024 ─────────────────────────────────────────────
+// 元旦 1/1、小年夜補假2/8、除夕2/9、初一2/10、初二2/11、初三2/12
+// 初四2/13、初六2/14補假、補班2/17、228=2/28、228調放3/2(六調日補假待確認)
+// 兒童節4/4、清明4/5、勞動節5/1、端午6/10、中秋9/17、國慶10/10
+const TW_CAL={
+  '2024-1-1':1,
+  '2024-2-8':1,'2024-2-9':1,'2024-2-10':1,'2024-2-11':1,'2024-2-12':1,'2024-2-13':1,'2024-2-14':1,
+  '2024-2-17':2,
+  '2024-2-28':1,'2024-3-2':1,
+  '2024-4-4':1,'2024-4-5':1,
+  '2024-5-1':1,
+  '2024-6-10':1,
+  '2024-9-17':1,
+  '2024-10-10':1,
+  // 2025 ────────────────────────────────────────────
+  // 元旦1/1、春節連假1/27-2/1(除夕1/28,初一1/29,初二1/30,初三1/31,1/27調放,2/1調放)、補班2/4
+  // 228=2/28、清明調放4/3、兒童節4/4、清明4/5、勞動節5/1
+  // 端午連假5/29-5/31、補班6/1、中秋調放9/27、連假10/2、補班10/4、中秋10/6、國慶10/10
+  '2025-1-1':1,
+  '2025-1-27':1,'2025-1-28':1,'2025-1-29':1,'2025-1-30':1,'2025-1-31':1,'2025-2-1':1,
+  '2025-2-4':2,
+  '2025-2-28':1,
+  '2025-4-3':1,'2025-4-4':1,'2025-4-5':1,
+  '2025-5-1':1,
+  '2025-5-29':1,'2025-5-30':1,'2025-5-31':1,
+  '2025-6-1':2,
+  '2025-9-27':1,
+  '2025-10-2':1,'2025-10-4':2,'2025-10-6':1,'2025-10-10':1,
+  // 2026 ────────────────────────────────────────────
+  // 2026起全面取消補班，均以補假處理，無補班日
+  // 元旦1/1(四)，無連假
+  '2026-1-1':1,
+  // 春節：除夕2/15(日)補假→2/20(五)、春節2/16-2/19、2/14(六)例假、2/20(五)補假、2/21-2/22例假
+  // 連假2/14-2/22共9天
+  '2026-2-14':1,'2026-2-15':1,'2026-2-16':1,'2026-2-17':1,'2026-2-18':1,
+  '2026-2-19':1,'2026-2-20':1,'2026-2-21':1,'2026-2-22':1,
+  // 和平紀念日：2/28(六)補假→2/27(五)，連假2/27-3/1
+  '2026-2-27':1,'2026-2-28':1,'2026-3-1':1,
+  // 兒童節及清明節：4/4(六)補假→4/3(五)、4/5(日)補假→4/6(一)，連假4/3-4/6
+  '2026-4-3':1,'2026-4-4':1,'2026-4-5':1,'2026-4-6':1,
+  // 勞動節：5/1(五)，連假5/1-5/3
+  '2026-5-1':1,'2026-5-2':1,'2026-5-3':1,
+  // 端午節：6/19(五)-6/21(日)
+  '2026-6-19':1,'2026-6-20':1,'2026-6-21':1,
+  // 中秋節＋教師節：9/25(五)-9/28(一)
+  '2026-9-25':1,'2026-9-26':1,'2026-9-27':1,'2026-9-28':1,
+  // 國慶日：10/10(六)補假→10/9(五)，連假10/9-10/11
+  '2026-10-9':1,'2026-10-10':1,'2026-10-11':1,
+  // 台灣光復節：10/25(日)補假→10/26(一)，連假10/24-10/26
+  '2026-10-24':1,'2026-10-25':1,'2026-10-26':1,
+  // 行憲紀念日：12/25(五)-12/27(日)
+  '2026-12-25':1,'2026-12-26':1,'2026-12-27':1
+};
+function ck(y,m,d){return `${y}-${m+1}-${d}`;}
+function calVal(y,m,d){return TW_CAL[ck(y,m,d)]||0;}
+function isWE(y,m,d){const w=new Date(y,m,d).getDay();return w===0||w===6;}
+function isOff(y,m,d){const v=calVal(y,m,d);if(v===2)return false;if(v===1)return true;return isWE(y,m,d);}
+function dim(y,m){return new Date(y,m+1,0).getDate();}
+function getDOW(y,m,d){return new Date(y,m,d).getDay();}
+function dateGe(y1,m1,d1,y2,m2,d2){
+  // returns true if date1 >= date2
+  if(y1!==y2) return y1>y2;
+  if(m1!==m2) return m1>m2;
+  return d1>=d2;
+}
+
+// ── Time formatting ──
+function fmtH(h){
+  if(h===null||h===undefined||h==='') return '';
+  const hh=Math.floor(h);
+  const mm=Math.round((h-hh)*60);
+  return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+function parseH(s){
+  if(s===null||s===undefined||String(s).trim()==='') return null;
+  s=String(s).trim().replace(/\s/g,'');
+  let h,m=0;
+  if(s.includes(':')){
+    const pts=s.split(':');
+    h=parseInt(pts[0],10)||0;
+    m=parseInt(pts[1],10)||0;
+  } else if(s.length===4&&/^\d{4}$/.test(s)){
+    // HHMM format e.g. 1830
+    h=parseInt(s.slice(0,2),10);
+    m=parseInt(s.slice(2),10);
+  } else if(s.length===3&&/^\d{3}$/.test(s)){
+    // HMM e.g. 830
+    h=parseInt(s.slice(0,1),10);
+    m=parseInt(s.slice(1),10);
+  } else {
+    const f=parseFloat(s);
+    if(isNaN(f)) return null;
+    h=Math.floor(f);
+    m=Math.round((f-h)*60);
+  }
+  if(isNaN(h)||isNaN(m)) return null;
+  const raw=h+m/60;
+  return Math.round(raw/STEP)*STEP;
+}
+
+// ── Service calculations ──
+function svcMonths(joinDate,ref){
+  const j=new Date(joinDate),r=new Date(ref);
+  const mos=(r.getFullYear()-j.getFullYear())*12+(r.getMonth()-j.getMonth());
+  return r.getDate()>=j.getDate()?mos:mos-1;
+}
+function annualDaysByMonths(mos){
+  if(mos<6) return 0;
+  if(mos<12) return 3;
+  const y=Math.floor(mos/12);
+  if(y<2) return 7;
+  if(y<3) return 10;
+  if(y<5) return 14;
+  if(y<10) return 15;
+  return Math.min(15+(y-10)+1,30);
+}
+function annualDays(emp,refDate){
+  return annualDaysByMonths(svcMonths(emp.joinDate,refDate));
+}
+
+// Annual leave reset dates for an employee
+// Before 6mo: first reset = join+6mo, then annually
+// Returns the reset date whose period CONTAINS refDate (i.e. the most recent past reset)
+// and the NEXT upcoming reset
+function annResetDates(joinDate){
+  const j=new Date(joinDate);
+  // generate resets: join+6mo, join+12mo, join+24mo, ...
+  const resets=[];
+  // 6-month reset
+  resets.push(new Date(j.getFullYear(),j.getMonth()+6,j.getDate()));
+  // annual resets
+  for(let yr=1;yr<=50;yr++){
+    resets.push(new Date(j.getFullYear()+yr,j.getMonth(),j.getDate()));
+  }
+  return resets;
+}
+
+// Given today and emp, find the most recent past reset date (null if none yet)
+// and the next upcoming reset date
+function getResetInfo(emp, today){
+  const resets=annResetDates(emp.joinDate);
+  let lastReset=null, nextReset=null;
+  for(let i=0;i<resets.length;i++){
+    if(resets[i]<=today){
+      lastReset=resets[i];
+    } else {
+      nextReset=resets[i];
+      break;
+    }
+  }
+  return {lastReset, nextReset};
+}
+
+// Comp reset = annual join anniversary
+function compResetDates(joinDate){
+  const j=new Date(joinDate);
+  const resets=[];
+  for(let yr=1;yr<=50;yr++){
+    resets.push(new Date(j.getFullYear()+yr,j.getMonth(),j.getDate()));
+  }
+  return resets;
+}
+function getCompResetInfo(emp, today){
+  const resets=compResetDates(emp.joinDate);
+  let lastReset=null, nextReset=null;
+  for(let i=0;i<resets.length;i++){
+    if(resets[i]<=today){
+      lastReset=resets[i];
+    } else {
+      nextReset=resets[i];
+      break;
+    }
+  }
+  return {lastReset, nextReset};
+}
+
+function fmtDateFull(d){
+  if(!d) return '—';
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+}
+
+// ── State ──
+let emps=[], att={}, nid=1, editEmpId=null;
+function K(e,y,m,d){return `${e}-${y}-${m}-${d}`;}
+
+// ── Comp calculation ──
+function dayComp(eid,y,m,d){
+  const rec=att[K(eid,y,m,d)]||{};
+  const leave=rec.leave||'';
+  const off=isOff(y,m,d);
+  if(!off){
+    if(leave==='補休') return -STD;
+    if(['特休','病假','事假','上課假'].includes(leave)) return 0;
+  }
+  const hasTime=(rec.inH!=null||rec.outH!=null);
+  if(!hasTime) return 0;
+  const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
+  const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
+  if(outH<=inH) return 0;
+  const raw=outH-inH;
+  // break: use stored value if set, else default 1h on workdays, 0 on offdays
+  const brk=rec.brk!=null?rec.brk:(off?0:DEFAULT_BRK);
+  const net=Math.max(0,raw-brk);
+  if(off) return +net.toFixed(2);
+  return +(net-STD).toFixed(2);
+}
+
+// Comp hours accumulated from startDate (inclusive) to endDate (inclusive)
+// startDate/endDate as {y,m,d}
+function compInRange(eid, sy,sm,sd, ey,em,ed){
+  let total=0;
+  // iterate months
+  let cy=sy,cm=sm;
+  while(cy<ey||(cy===ey&&cm<=em)){
+    const days=dim(cy,cm);
+    const dStart=(cy===sy&&cm===sm)?sd:1;
+    const dEnd=(cy===ey&&cm===em)?ed:days;
+    for(let d=dStart;d<=dEnd;d++){
+      total+=dayComp(eid,cy,cm,d);
+    }
+    cm++;
+    if(cm>11){cm=0;cy++;}
+  }
+  return +total.toFixed(1);
+}
+
+// Count leave of type in date range [sy,sm,sd] to [ey,em,ed] inclusive
+function countLInRange(eid, sy,sm,sd, ey,em,ed, type){
+  let count=0;
+  let cy=sy,cm=sm;
+  while(cy<ey||(cy===ey&&cm<=em)){
+    const days=dim(cy,cm);
+    const dStart=(cy===sy&&cm===sm)?sd:1;
+    const dEnd=(cy===ey&&cm===em)?ed:days;
+    for(let d=dStart;d<=dEnd;d++){
+      const r=att[K(eid,cy,cm,d)]||{};
+      if((r.leave||'')===type) count++;
+    }
+    cm++;if(cm>11){cm=0;cy++;}
+  }
+  return count;
+}
+
+function countL(eid,y,m,type){
+  let c=0;for(let d=1;d<=dim(y,m);d++){const r=att[K(eid,y,m,d)]||{};if((r.leave||'')===type)c++;}return c;
+}
+
+// ── Effective annual leave state for an employee as of periodEnd ──
+// periodEnd: the date up to which we calculate (e.g. last day of selected month, or today)
+function annLeaveState(emp, periodEnd){
+  const allResets=annResetDates(emp.joinDate);
+  // Find the most recent reset that has already occurred by periodEnd
+  let lastReset=null, nextReset=null;
+  for(let i=0;i<allResets.length;i++){
+    if(allResets[i]<=periodEnd){
+      lastReset=allResets[i];
+    } else {
+      nextReset=allResets[i];
+      break;
+    }
+  }
+  if(!lastReset){
+    // No reset yet — employee hasn't reached 6 months
+    return {totalDays:0, usedDays:0, remainDays:0, nextReset};
+  }
+  // Quota = days earned AT the start of this period (lastReset date itself)
+  const totalDays=annualDaysByMonths(svcMonths(emp.joinDate, lastReset));
+  // Used = 特休 taken from lastReset up to periodEnd
+  const usedDays=countLInRange(emp.id,
+    lastReset.getFullYear(), lastReset.getMonth(), lastReset.getDate(),
+    periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), '特休');
+  const remainDays=Math.max(0, totalDays-usedDays);
+  return {totalDays, usedDays, remainDays, nextReset};
+}
+
+// ── Effective comp balance as of periodEnd ──
+function compBalState(emp, periodEnd){
+  const allCompResets=compResetDates(emp.joinDate);
+  let lastReset=null, nextReset=null;
+  for(let i=0;i<allCompResets.length;i++){
+    if(allCompResets[i]<=periodEnd){
+      lastReset=allCompResets[i];
+    } else {
+      nextReset=allCompResets[i];
+      break;
+    }
+  }
+  let bal;
+  if(!lastReset){
+    // No comp reset yet: compBal base + all comp from join date to periodEnd
+    const j=new Date(emp.joinDate);
+    const rawComp=compInRange(emp.id,
+      j.getFullYear(), j.getMonth(), j.getDate(),
+      periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate());
+    bal=+(emp.compBal + rawComp).toFixed(1);
+  } else {
+    // After last reset: base=0, only comp since lastReset to periodEnd
+    bal=compInRange(emp.id,
+      lastReset.getFullYear(), lastReset.getMonth(), lastReset.getDate(),
+      periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate());
+  }
+  return {bal:+bal.toFixed(1), nextReset};
+}
+
+// Count leave in a specific month
+function countLMonth(eid,y,m,type){ return countL(eid,y,m,type); }
+
+// ── Select inits ──
+function initSel(){
+  const now=new Date(),cy=now.getFullYear(),cm=now.getMonth();
+  const ML=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  ['sm','sm2'].forEach(id=>{
+    const s=document.getElementById(id);
+    s.innerHTML=ML.map((l,i)=>`<option value="${i}"${i===cm?' selected':''}>${l}</option>`).join('');
+  });
+  ['sy','sy2'].forEach(id=>{
+    const s=document.getElementById(id);
+    s.innerHTML='';
+    for(let y=cy-2;y<=cy+2;y++){
+      const o=document.createElement('option');
+      o.value=y;o.textContent=y+'年';if(y===cy)o.selected=true;
+      s.appendChild(o);
+    }
+  });
+}
+function getYM(n){
+  return n===1
+    ?{y:+document.getElementById('sy').value,m:+document.getElementById('sm').value}
+    :{y:+document.getElementById('sy2').value,m:+document.getElementById('sm2').value};
+}
+
+// ── Render schedule ──
+function render(){
+  const {y,m}=getYM(1),days=dim(y,m),now=new Date();
+  const DW=['日','一','二','三','四','五','六'];
+  const tbl=document.getElementById('stbl');
+
+  // Pre-compute per-employee state
+  const state={};
+  emps.forEach(e=>{
+    const {remainDays:annRemain, totalDays:annTotal, usedDays:annUsed}=annLeaveState(e, now);
+    const {bal:compBal}=compBalState(e, now);
+    const classUsed=countL(e.id,y,m,'上課假');
+    state[e.id]={annRemain,annTotal,annUsed,compBal,classUsed};
+  });
+
+  // Compute explicit table width so table-layout:fixed is respected
+  const COL_NAME=130, COL_DAY=80, COL_SUM=200;
+  const totalW=COL_NAME + days*COL_DAY + COL_SUM;
+
+  // Build colgroup + header to enforce fixed widths
+  let h=`<colgroup><col style="width:${COL_NAME}px">`;
+  for(let d=1;d<=days;d++) h+=`<col style="width:${COL_DAY}px">`;
+  h+=`<col style="width:${COL_SUM}px"></colgroup>`;
+
+  h+='<thead><tr><th class="nc">員工</th>';
+  for(let d=1;d<=days;d++){
+    const w=getDOW(y,m,d),off=isOff(y,m,d);
+    const td=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
+    const cls=(off?'offday':'')+(td?(off?' tdy':'tdy'):'');
+    h+=`<th class="${cls}">${d}<br><span style="font-size:9px;font-weight:400">${['日','一','二','三','四','五','六'][w]}</span></th>`;
+  }
+  h+='<th class="mc">月計</th></tr></thead>';
+
+  let b='<tbody>';
+  emps.forEach((emp,ei)=>{
+    const ac=AVC[ei%AVC.length];
+    const {annRemain,annTotal,compBal,classUsed}=state[emp.id];
+    const annExhausted=annTotal>0&&annRemain<=0;
+    const compCanCover=compBal>=STD;
+
+    let lc={};LT.slice(1).forEach(t=>lc[t]=0);
+    let mCompTotal=0;
+    let row=`<tr><td class="ncc" style="text-align:center">
+      <span class="av" style="background:${ac[0]};color:${ac[1]}">${emp.name[0]}</span>${emp.name}
+      <span class="eb" onclick="openEmpModal(${emp.id})" title="編輯">✎</span>
+      <span class="db" onclick="delEmp(${emp.id})" title="刪除">✕</span>
+    </td>`;
+
+    for(let d=1;d<=days;d++){
+      const off=isOff(y,m,d);
+      const td=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
+      const k=K(emp.id,y,m,d);
+      const rec=att[k]||{};
+      const leave=rec.leave||'';
+      const storedIn=rec.inH!=null?rec.inH:null;
+      const storedOut=rec.outH!=null?rec.outH:null;
+      const storedBrk=rec.brk!=null?rec.brk:null;
+
+      if(leave) lc[leave]=(lc[leave]||0)+1;
+      const comp=dayComp(emp.id,y,m,d);
+      mCompTotal+=comp;
+
+      const cellCls=(off?'offday':'')+(td?(off?' tdy':'tdy'):'');
+      // If full-day leave is selected, treat time fields same as off-day (blank placeholder, disabled)
+      const isFullDay=FULL_LEAVES.includes(leave);
+      const phIn=(off||isFullDay)?'':fmtH(DEFAULT_IN);
+      const phOut=(off||isFullDay)?'':fmtH(DEFAULT_OUT);
+      const phBrk=(off||isFullDay)?'':fmtH(DEFAULT_BRK);
+      const tiDisabled=(isFullDay||off&&!storedIn&&!storedOut)?'':'';
+
+      let opts=LT.map(lt=>{
+        let dis=false;
+        if(lt==='上課假'&&lt!==leave&&classUsed>=emp.classMax) dis=true;
+        if(lt==='特休'&&lt!==leave&&annExhausted) dis=true;
+        if(lt==='特休'&&lt!==leave&&compCanCover) dis=true;
+        return `<option value="${lt}"${leave===lt?' selected':''}${dis?' disabled':''} style="${dis?'color:#ccc':''}">${lt||'—'}</option>`;
+      }).join('');
+
+      let ctag='';
+      const cr=+comp.toFixed(1);
+      if(cr>0) ctag=`<span class="comp-tag cp">+${cr}h</span>`;
+      else if(cr<0) ctag=`<span class="comp-tag cn">${cr}h</span>`;
+      else if(storedIn!==null||storedOut!==null) ctag=`<span class="comp-tag cz">±0h</span>`;
+
+      row+=`<td class="${cellCls}"><div class="dc">
+        <select class="lv-sel" onchange="setLeave(${emp.id},${y},${m},${d},this.value)">${opts}</select>
+        <div class="time-stack">
+          <div class="time-field">
+            <span class="time-lbl">上</span>
+            <input class="ti${storedIn!==null?' has-val':''}" type="text" maxlength="5"
+              placeholder="${phIn}" value="${storedIn!==null?fmtH(storedIn):''}"
+              ${isFullDay?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
+              onchange="setTime(${emp.id},${y},${m},${d},'in',this.value)"
+              onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'in')">
+          </div>
+          <div class="time-field">
+            <span class="time-lbl">下</span>
+            <input class="ti${storedOut!==null?' has-val':''}" type="text" maxlength="5"
+              placeholder="${phOut}" value="${storedOut!==null?fmtH(storedOut):''}"
+              ${isFullDay?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
+              onchange="setTime(${emp.id},${y},${m},${d},'out',this.value)"
+              onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'out')">
+          </div>
+          <div class="time-field">
+            <span class="time-lbl" style="color:#e0a060">休</span>
+            <input class="ti${storedBrk!==null?' has-val':''}" type="text" maxlength="5"
+              placeholder="${phBrk}" value="${storedBrk!==null?fmtH(storedBrk):''}"
+              ${isFullDay?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
+              onchange="setBreak(${emp.id},${y},${m},${d},this.value)"
+              onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'brk')">
+          </div>
+        </div>
+        ${ctag}
+      </div></td>`;
+    }
+
+    let parts=[];
+    LT.slice(1).forEach(t=>{if(lc[t]>0)parts.push(`<span class="bx b${t}">${t} ${lc[t]}天</span>`);});
+    const mc=+mCompTotal.toFixed(1);
+    if(mc>0) parts.push(`<span class="bx" style="background:#e2f5e8;color:#1a6a35">補休+${mc}h</span>`);
+    else if(mc<0) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">補休${mc}h</span>`);
+    if(classUsed>=emp.classMax&&emp.classMax>0)
+      parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">上課假達上限</span>`);
+    if(annExhausted)
+      parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">特休已用完</span>`);
+
+    row+=`<td class="mcc">${parts.join(' ')||'<span style="font-size:11px;color:#bbb">—</span>'}</td></tr>`;
+    b+=row;
+  });
+  b+='</tbody>';
+  tbl.style.width = totalW + 'px';
+  tbl.innerHTML = h + b;
+}
+
+function timeKey(e,el,eid,y,m,d,which){
+  if(e.key!=='ArrowUp'&&e.key!=='ArrowDown') return;
+  e.preventDefault();
+  const k=K(eid,y,m,d);
+  const rec=att[k]||{};
+  const off=isOff(y,m,d);
+  const field=which==='in'?'inH':which==='out'?'outH':'brk';
+  const def=which==='in'?DEFAULT_IN:which==='out'?DEFAULT_OUT:(off?0:DEFAULT_BRK);
+  let cur=rec[field]!=null?rec[field]:(off&&which==='brk'?0:def);
+  const delta=e.key==='ArrowUp'?STEP:-STEP;
+  let nv=Math.round((cur+delta)/STEP)*STEP;
+  nv=Math.max(0,Math.min(24,nv));
+  if(!att[k]) att[k]={};
+  att[k][field]=nv;
+  // Update only this input's value without full re-render
+  el.value=fmtH(nv);
+  el.classList.add('has-val');
+  // Recompute comp tag for this cell
+  const comp=dayComp(eid,y,m,d);
+  const cell=el.closest('td');
+  const existing=cell.querySelector('.comp-tag');
+  const cr=+comp.toFixed(1);
+  let tagHtml='';
+  if(cr>0) tagHtml=`<span class="comp-tag cp">+${cr}h</span>`;
+  else if(cr<0) tagHtml=`<span class="comp-tag cn">${cr}h</span>`;
+  else tagHtml=`<span class="comp-tag cz">±0h</span>`;
+  if(existing) existing.outerHTML=tagHtml;
+  else cell.querySelector('.dc').insertAdjacentHTML('beforeend',tagHtml);
+  el.focus();
+}
+
+const FULL_LEAVES=['特休','病假','事假','補休','上課假'];
+function setLeave(eid,y,m,d,val){
+  const k=K(eid,y,m,d);if(!att[k])att[k]={};
+  att[k].leave=val;
+  if(FULL_LEAVES.includes(val)){
+    att[k].inH=null;
+    att[k].outH=null;
+    att[k].brk=null;
+  }
+  render();
+  saveData();
+}
+function setBreak(eid,y,m,d,val){
+  const k=K(eid,y,m,d);if(!att[k])att[k]={};
+  att[k].brk=parseH(val);
+  render();
+  saveData();
+}
+function setTime(eid,y,m,d,which,val){
+  const k=K(eid,y,m,d);if(!att[k])att[k]={};
+  att[k][which==='in'?'inH':'outH']=parseH(val);
+  render();
+  saveData();
+}
+function delEmp(id){
+  if(confirm('確定刪除此員工？')) emps=emps.filter(e=>e.id!==id);
+  render();
+  saveData();
+}
+
+// ── Summary ──
+function renderSum(){
+  const {y,m}=getYM(2), now=new Date();
+  // Last day of the selected month
+  const monthEnd=new Date(y,m+1,0);
+  // First day of the selected month
+  const monthStart=new Date(y,m,1);
+
+  let h=`<colgroup>
+    <col style="width:11%">
+    <col style="width:11%"><col style="width:11%"><col style="width:11%">
+    <col style="width:12%"><col style="width:11%">
+    <col style="width:11%"><col style="width:11%"><col style="width:11%">
+  </colgroup>
+  <thead>
+    <tr>
+      <th rowspan="2" style="vertical-align:middle">員工</th>
+      <th colspan="3" class="sec-head sec-div">請假</th>
+      <th colspan="2" class="sec-head sec-div">特休</th>
+      <th colspan="3" class="sec-head">補休</th>
+    </tr>
+    <tr>
+      <th>病假</th><th>事假</th><th class="sec-div">上課假</th>
+      <th>已用/總天數</th><th class="sec-div">重置日</th>
+      <th>本月增減</th><th>餘額</th><th>重置日</th>
+    </tr>
+  </thead><tbody>`;
+
+  const annotations=[];
+
+  emps.forEach((emp,ei)=>{
+    const ac=AVC[ei%AVC.length];
+
+    // Use monthEnd as the period end for all calculations
+    // This ensures all leave entered in the selected month is counted
+    const periodEnd=monthEnd;
+
+    // Annual leave state up to end of selected month
+    const annState=annLeaveState(emp, periodEnd);
+    const {totalDays:annTotal, usedDays:annUsed, remainDays:annRemain, nextReset:annNext}=annState;
+    const rc=annRemain>5?'rok':annRemain>0?'rlo':'rno';
+
+    // Comp balance up to end of selected month
+    const {bal:compBal, nextReset:compNext}=compBalState(emp, periodEnd);
+    const bc=compBal>=STD?'cpos':compBal>0?'':'cneg';
+
+    // Monthly comp delta: from start of month to end (or today if this month)
+    const mStart={y,m:m,d:1};
+    const mEnd=now.getFullYear()===y&&now.getMonth()===m
+      ?{y:now.getFullYear(),m:now.getMonth(),d:now.getDate()}
+      :{y,m:m,d:dim(y,m)};
+    const mcomp=compInRange(emp.id, mStart.y,mStart.m,mStart.d, mEnd.y,mEnd.m,mEnd.d);
+    const cc=mcomp>0?'cpos':mcomp<0?'cneg':'';
+
+    const ms=countLMonth(emp.id,y,m,'病假');
+    const mp=countLMonth(emp.id,y,m,'事假');
+    const mc=countLMonth(emp.id,y,m,'上課假');
+
+    // ── Check if annual reset falls in this month ──
+    const annResets=annResetDates(emp.joinDate);
+    const annResetsThisMonth=annResets.filter(d=>d.getFullYear()===y&&d.getMonth()===m);
+    const compResets=compResetDates(emp.joinDate);
+    const compResetsThisMonth=compResets.filter(d=>d.getFullYear()===y&&d.getMonth()===m);
+
+    // Generate annotations
+    annResetsThisMonth.forEach(rDate=>{
+      const prevResets=annResets.filter(d=>d<rDate);
+      const prevReset=prevResets.length>0?prevResets[prevResets.length-1]:null;
+      const periodStart=prevReset||new Date(emp.joinDate);
+      const dayBeforeReset=new Date(rDate.getTime()-86400000);
+
+      // Quota for THIS period = annual days as of the START of this period (prevReset)
+      // e.g. period 2025/9/30-2026/3/30 → quota = annualDays at 2025/9/30 = 3 days (6mo)
+      const totalBeforeReset=annualDaysByMonths(svcMonths(emp.joinDate, periodStart));
+
+      const usedBeforeReset=countLInRange(emp.id,
+        periodStart.getFullYear(),periodStart.getMonth(),periodStart.getDate(),
+        dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate(),'特休');
+      const remainBeforeReset=Math.max(0,totalBeforeReset-usedBeforeReset);
+
+      // Comp before reset: from previous comp reset (or join+compBal) up to day before reset
+      const compPrevResets=compResets.filter(d=>d<rDate);
+      const compPrevReset=compPrevResets.length>0?compPrevResets[compPrevResets.length-1]:null;
+      const compBeforeReset=compPrevReset
+        ? compInRange(emp.id,
+            compPrevReset.getFullYear(),compPrevReset.getMonth(),compPrevReset.getDate(),
+            dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())
+        : +(emp.compBal+compInRange(emp.id,
+            new Date(emp.joinDate).getFullYear(),new Date(emp.joinDate).getMonth(),new Date(emp.joinDate).getDate(),
+            dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())).toFixed(1);
+
+      // Annotation format: show day before reset as the deadline
+      const deadlineStr=fmtDateFull(dayBeforeReset);
+      const hadAnnualLeave=totalBeforeReset>0;
+
+      if(hadAnnualLeave){
+        annotations.push({
+          name:emp.name,
+          deadlineDate:deadlineStr,
+          annRemain:remainBeforeReset,
+          compRemain:+compBeforeReset.toFixed(1),
+          type:'both'
+        });
+      } else {
+        annotations.push({
+          name:emp.name,
+          deadlineDate:deadlineStr,
+          annRemain:null,
+          compRemain:+compBeforeReset.toFixed(1),
+          type:'comp_only'
+        });
+      }
+    });
+
+    // Comp-only resets not already covered by ann resets this month
+    compResetsThisMonth
+      .filter(cr=>!annResetsThisMonth.some(ar=>ar.getTime()===cr.getTime()))
+      .forEach(rDate=>{
+        const dayBeforeReset=new Date(rDate.getTime()-86400000);
+        const compPrevResets=compResets.filter(d=>d<rDate);
+        const compPrevReset=compPrevResets.length>0?compPrevResets[compPrevResets.length-1]:null;
+        const compBeforeReset=compPrevReset
+          ? compInRange(emp.id,
+              compPrevReset.getFullYear(),compPrevReset.getMonth(),compPrevReset.getDate(),
+              dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())
+          : +(emp.compBal+compInRange(emp.id,
+              new Date(emp.joinDate).getFullYear(),new Date(emp.joinDate).getMonth(),new Date(emp.joinDate).getDate(),
+              dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())).toFixed(1);
+
+        annotations.push({
+          name:emp.name,
+          deadlineDate:fmtDateFull(dayBeforeReset),
+          annRemain:null,
+          compRemain:+compBeforeReset.toFixed(1),
+          type:'comp_only'
+        });
+      });
+
+    h+=`<tr>
+      <td><span class="av" style="background:${ac[0]};color:${ac[1]}">${emp.name[0]}</span>${emp.name}
+        <span class="eb" onclick="openEmpModal(${emp.id})" title="編輯">✎</span></td>
+      <td>${ms}天</td><td>${mp}天</td>
+      <td class="sec-div">${mc}/${emp.classMax}天</td>
+      <td class="${rc}">${annUsed}/${annTotal}天</td>
+      <td class="sec-div">${annNext?fmtDateFull(annNext):'—'}</td>
+      <td class="${cc}">${mcomp>=0?'+':''}${mcomp}</td>
+      <td class="${bc}">${compBal}</td>
+      <td>${compNext?fmtDateFull(compNext):'—'}</td>
+    </tr>`;
+  });
+
+  h+='</tbody>';
+  document.getElementById('dtbl').innerHTML=h;
+
+  // Render annotations
+  const box=document.getElementById('anno-box');
+  if(annotations.length===0){
+    box.innerHTML='';
+    return;
+  }
+  box.innerHTML=annotations.map(a=>{
+    let txt='';
+    if(a.type==='both'){
+      txt=`<strong>${a.name}</strong> 本月特休、補休重置，於 <strong>${a.deadlineDate}</strong> 前剩餘特休 <strong>${a.annRemain} 天</strong>，補休 <strong>${a.compRemain} 小時</strong>。`;
+    } else {
+      txt=`<strong>${a.name}</strong> 本月補休重置，於 <strong>${a.deadlineDate}</strong> 前剩餘補休 <strong>${a.compRemain} 小時</strong>。`;
+    }
+    return `<div class="anno">${txt}</div>`;
+  }).join('');
+}
+
+// ── Page switch ──
+function showPg(p,btn){
+  document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('.tb').forEach(e=>e.classList.remove('on'));
+  document.getElementById('pg-'+p).classList.add('on');btn.classList.add('on');
+  if(p==='summary') renderSum();
+}
+
+// ── Employee modal ──
+function openEmpModal(id){
+  editEmpId=id||null;
+  const isEdit=id!=null;
+  document.getElementById('memp-title').textContent=isEdit?'編輯員工':'新增員工';
+  document.getElementById('e-save-btn').textContent=isEdit?'儲存':'新增';
+  if(isEdit){
+    const e=emps.find(x=>x.id===id);
+    document.getElementById('e-name').value=e.name;
+    document.getElementById('e-join').value=e.joinDate;
+    document.getElementById('e-classmax').value=e.classMax;
+    document.getElementById('e-compbal').value=e.compBal;
+    const {bal}=compBalState(e,new Date());
+    document.getElementById('e-compbal-hint').textContent=`目前實際補休餘額：${bal} 小時`;
+  } else {
+    ['e-name','e-join'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('e-classmax').value='2';
+    document.getElementById('e-compbal').value='0';
+    document.getElementById('e-compbal-hint').textContent='';
+  }
+  document.getElementById('memp').classList.add('on');
+}
+function closeEmpModal(){document.getElementById('memp').classList.remove('on');}
+function saveEmp(){
+  const n=document.getElementById('e-name').value.trim();
+  const j=document.getElementById('e-join').value;
+  if(!n||!j){alert('請填寫姓名與到職日期');return;}
+  const cm=+document.getElementById('e-classmax').value||0;
+  const cb=parseFloat(document.getElementById('e-compbal').value)||0;
+  if(editEmpId!=null){
+    const e=emps.find(x=>x.id===editEmpId);
+    e.name=n;e.joinDate=j;e.classMax=cm;e.compBal=cb;
+  } else {
+    emps.push({id:nid++,name:n,joinDate:j,classMax:cm,compBal:cb});
+  }
+  closeEmpModal();render();
+  saveData();
+}
+
+// ── Google Sheets API ──
+const API_URL='https://script.google.com/macros/s/AKfycbw9GJucTL09dEJT_PueaqkZQxbgymGgPZN1t22r53cqSkjx0JJzQwpNs76PxNBQdnNY/exec';
+
+function setStatus(msg,isErr){
+  const el=document.getElementById('sync-status');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.color=isErr?'#b82020':'#1a7a50';
+  el.style.opacity='1';
+  if(!isErr) setTimeout(()=>{el.style.opacity='0';},2000);
+}
+
+async function loadData(){
+  setStatus('載入中…');
+  try{
+    const res=await fetch(`${API_URL}?action=getAll`);
+    const data=await res.json();
+    if(data.error) throw new Error(data.error);
+    if(data.employees && data.employees.length>0){
+      emps=data.employees.map(e=>({
+        id:+e.id, name:e.name, joinDate:e.joinDate,
+        classMax:+e.classMax||0, compBal:+e.compBal||0
+      }));
+      nid=Math.max(...emps.map(e=>e.id))+1;
+    }
+    if(data.attendance){
+      att={};
+      Object.entries(data.attendance).forEach(([key,val])=>{
+        att[key]={
+          leave:val.leave||'',
+          inH:val.inH!==''&&val.inH!=null?+val.inH:null,
+          outH:val.outH!==''&&val.outH!=null?+val.outH:null,
+          brk:val.brk!==''&&val.brk!=null?+val.brk:null
+        };
+        // Clean up empty leave
+        if(att[key].leave==='') delete att[key].leave;
+      });
+    }
+    setStatus('已同步');
+  } catch(err){
+    setStatus('載入失敗：'+err.message, true);
+    console.error(err);
+  }
+  render();
+}
+
+let saveTimer=null;
+function saveData(){
+  // Debounce: wait 1.5s after last change before saving
+  clearTimeout(saveTimer);
+  setStatus('…');
+  saveTimer=setTimeout(async()=>{
+    setStatus('儲存中…');
+    try{
+      // Clean att: remove keys where all fields are empty/null
+      const cleanAtt={};
+      Object.entries(att).forEach(([k,v])=>{
+        if(v.leave||(v.inH!=null)||(v.outH!=null)||(v.brk!=null))
+          cleanAtt[k]=v;
+      });
+      const res=await fetch(API_URL,{
+        method:'POST',
+        body:JSON.stringify({action:'saveAll',data:{employees:emps,attendance:cleanAtt}})
+      });
+      const data=await res.json();
+      if(data.error) throw new Error(data.error);
+      setStatus('已儲存 ✓');
+    } catch(err){
+      setStatus('儲存失敗：'+err.message, true);
+      console.error(err);
+    }
+  },1500);
+}
+
+initSel();loadData();
+</script>
