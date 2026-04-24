@@ -149,7 +149,7 @@ input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 
       <div class="help-table">
         <div class="ht-row"><span class="bx b特休">特休</span><span>全日休假，時間欄位自動鎖定。用完後選項變灰無法選取。</span></div>
         <div class="ht-row"><span class="bx b病假">病假</span><span>可全日（不填時間，計 8 小時）或半日（填入時間，依實際計算）。</span></div>
-        <div class="ht-row"><span class="bx b事假">事假</span><span>全日休假，時間欄位自動鎖定。</span></div>
+        <div class="ht-row"><span class="bx b事假">事假</span><span>可全日（不填時間，計 8 小時）或半日（填入時間，依實際計算）。</span></div>
         <div class="ht-row"><span class="bx b補休">補休</span><span>使用補休假，扣除 8 小時補休餘額。</span></div>
         <div class="ht-row"><span class="bx b上課假">上課假</span><span>每月有上限，達到上限後選項變灰無法選取。</span></div>
       </div>
@@ -321,18 +321,34 @@ function daySickHours(eid,y,m,d){
   const rec=att[K(eid,y,m,d)]||{};
   if((rec.leave||'')!=='病假') return 0;
   const hasTime=(rec.inH!=null||rec.outH!=null);
-  if(!hasTime) return STD; // full day = 8h
+  if(!hasTime) return STD;
   const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
   const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
   if(outH<=inH) return 0;
-  const brk=rec.brk!=null?rec.brk:DEFAULT_BRK; // same default as workday
+  const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;
   return +Math.max(0,outH-inH-brk).toFixed(1);
 }
-
-// Sum sick hours in a month
 function monthSickHours(eid,y,m){
   let total=0;
   for(let d=1;d<=dim(y,m);d++) total+=daySickHours(eid,y,m,d);
+  return +total.toFixed(1);
+}
+
+// Calculate personal leave hours for a day (same logic as sick leave)
+function dayPersonalHours(eid,y,m,d){
+  const rec=att[K(eid,y,m,d)]||{};
+  if((rec.leave||'')!=='事假') return 0;
+  const hasTime=(rec.inH!=null||rec.outH!=null);
+  if(!hasTime) return STD;
+  const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
+  const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
+  if(outH<=inH) return 0;
+  const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;
+  return +Math.max(0,outH-inH-brk).toFixed(1);
+}
+function monthPersonalHours(eid,y,m){
+  let total=0;
+  for(let d=1;d<=dim(y,m);d++) total+=dayPersonalHours(eid,y,m,d);
   return +total.toFixed(1);
 }
 
@@ -341,7 +357,7 @@ function dayComp(eid,y,m,d){
   const leave=rec.leave||'',off=isOff(y,m,d);
   if(!off){
     if(leave==='補休') return -STD;
-    // 病假：comp is always 0 regardless of time
+    // 病假/事假：comp is always 0 regardless of time
     if(['特休','病假','事假','上課假'].includes(leave)) return 0;
   }
   const hasTime=(rec.inH!=null||rec.outH!=null);
@@ -521,11 +537,11 @@ function render(){
       </div></td>`;
     }
     let parts=[];
-    // Sick leave: show in hours
     const sickH=monthSickHours(emp.id,y,m);
     if(sickH>0) parts.push(`<span class="bx b病假">病假 ${sickH}h</span>`);
-    // Other leave types: show in days
-    ['事假','特休','補休','上課假'].forEach(t=>{if(lc[t]>0)parts.push(`<span class="bx b${t}">${t} ${lc[t]}天</span>`);});
+    const personalH=monthPersonalHours(emp.id,y,m);
+    if(personalH>0) parts.push(`<span class="bx b事假">事假 ${personalH}h</span>`);
+    ['特休','補休','上課假'].forEach(t=>{if(lc[t]>0)parts.push(`<span class="bx b${t}">${t} ${lc[t]}天</span>`);});
     const mc=+mCompTotal.toFixed(1);
     if(mc>0) parts.push(`<span class="bx" style="background:#e2f5e8;color:#1a6a35">補休+${mc}h</span>`);
     else if(mc<0) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">補休${mc}h</span>`);
@@ -560,7 +576,7 @@ function timeKey(e,el,eid,y,m,d,which){
   apiSetAtt(k,att[k]);
 }
 
-const FULL_LEAVES=['特休','事假','補休','上課假'];
+const FULL_LEAVES=['特休','補休','上課假'];
 function setLeave(eid,y,m,d,val){
   const k=K(eid,y,m,d);if(!att[k])att[k]={};
   att[k].leave=val;
@@ -598,7 +614,7 @@ function renderSum(){
       <th colspan="3" class="sec-head">補休</th>
     </tr>
     <tr>
-      <th>病假(時)</th><th>事假</th><th class="sec-div">上課假</th>
+      <th>病假(時)</th><th>事假(時)</th><th class="sec-div">上課假</th>
       <th>已用/總天數</th><th class="sec-div">重置日</th>
       <th>本月增減</th><th>餘額</th><th>重置日</th>
     </tr>
@@ -613,7 +629,7 @@ function renderSum(){
     const bc=compBal>=STD?'cpos':compBal>0?'':'cneg';
     const mcomp=compInRange(emp.id,y,m,1,y,m,dim(y,m));
     const cc=mcomp>0?'cpos':mcomp<0?'cneg':'';
-    const ms=monthSickHours(emp.id,y,m),mp=countLMonth(emp.id,y,m,'事假'),mc=countLMonth(emp.id,y,m,'上課假');
+    const ms=monthSickHours(emp.id,y,m),mp=monthPersonalHours(emp.id,y,m),mc=countLMonth(emp.id,y,m,'上課假');
     const annResets=annResetDates(emp.joinDate);
     const annResetsThisMonth=annResets.filter(d=>d.getFullYear()===y&&d.getMonth()===m);
     const compResets=compResetDates(emp.joinDate);
@@ -650,7 +666,7 @@ function renderSum(){
     h+=`<tr>
       <td><span class="av" style="background:${ac[0]};color:${ac[1]}">${emp.name[0]}</span>${emp.name}
         <span class="eb" onclick="openEmpModal(${emp.id})" title="編輯">✎</span></td>
-      <td>${ms}時</td><td>${mp}天</td>
+      <td>${ms}時</td><td>${mp}時</td>
       <td class="sec-div">${mc}/${emp.classMax}天</td>
       <td class="${rc}">${annUsed}/${annTotal}天</td>
       <td class="sec-div">${annNext?fmtDateFull(annNext):'—'}</td>
