@@ -666,7 +666,6 @@ function setLeave(eid,y,m,d,val){
   if(FULL_LEAVES.includes(val)){att[k].inH=null;att[k].outH=null;att[k].brk=null;}
   render();
   apiSetAtt(k,att[k]);
-  syncCalendar(eid,y,m,d,val);
 }
 function setBreak(eid,y,m,d,val){
   if(isLocked(y,m)) return;
@@ -957,36 +956,6 @@ async function apiDelEmp(id){
 }
 
 initSel();loadData();
-</script>
-
-<script>
-// ── Google Calendar via Apps Script ──
-const AS_URL='https://script.google.com/macros/s/AKfycbyRP0PxdFQk8j2qR_BdIYPijIaHg8Zez9bVLxvV9ryMfqE5QCXb2is7c0qYZJzLaGmt7g/exec';
-const FULL_LEAVE_TYPES=['特休','病假','事假','補休','上課假'];
-
-function fmtCalDate(y,m,d){
-  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-}
-
-async function syncCalendar(eid,y,m,d,leave){
-  const emp=emps.find(e=>e.id===eid);
-  if(!emp) return;
-  const dateStr=fmtCalDate(y,m,d);
-  const eventId=`att${eid}y${y}m${m+1}d${d}`;
-  const isLeave=FULL_LEAVE_TYPES.includes(leave);
-  const params=new URLSearchParams({
-    action:'syncCalendar',
-    calAction: isLeave?'upsert':'delete',
-    eventId,
-    summary: isLeave?`[${leave}] ${emp.name}`:'',
-    date: dateStr
-  });
-  try{
-    await fetch(`${AS_URL}?${params}`,{mode:'no-cors'});
-  } catch(err){
-    console.error('Calendar sync error:',err);
-  }
-}
 </script>
 </body>
 </html>
