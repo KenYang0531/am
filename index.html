@@ -547,6 +547,52 @@ function render(){
     else if(mc<0) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">補休${mc}h</span>`);
     if(classUsed>=emp.classMax&&emp.classMax>0) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">上課假達上限</span>`);
     if(annExhausted) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">特休已用完</span>`);
+    // Check consecutive 7-day work warning
+    // Extend check range to include last 6 days of previous month for continuity
+    const prevDays=6;
+    let streak=0, maxStreak=0, streakStart=null, warned=[];
+    // Build a flat list of days to check: last 6 days of prev month + all days this month
+    const checkDays=[];
+    // Previous month days
+    const prevM=m===0?11:m-1, prevY=m===0?y-1:y;
+    const prevTotal=dim(prevY,prevM);
+    for(let d=prevTotal-prevDays+1;d<=prevTotal;d++) checkDays.push({y:prevY,m:prevM,d});
+    for(let d=1;d<=days;d++) checkDays.push({y,m,d});
+
+    checkDays.forEach(({y:cy,m:cm,d:cd})=>{
+      const off=isOff(cy,cm,cd);
+      const rec=att[K(emp.id,cy,cm,cd)]||{};
+      const leave=rec.leave||'';
+      const FULL=['特休','病假','事假','補休','上課假'];
+      let worked=false;
+      if(!off){
+        // Weekday: worked if no full-day leave
+        worked=!FULL.includes(leave);
+      } else {
+        // Weekend/holiday: worked if has time entries
+        worked=(rec.inH!=null||rec.outH!=null);
+      }
+      if(worked){
+        if(streak===0) streakStart={y:cy,m:cm,d:cd};
+        streak++;
+        if(streak>=7){
+          // Only warn for streaks that end within this month
+          if(cy===y&&cm===m){
+            warned.push({start:streakStart,end:{y:cy,m:cm,d:cd},len:streak});
+          }
+        }
+      } else {
+        streak=0; streakStart=null;
+      }
+    });
+
+    // Deduplicate: only show the longest/latest streak warning
+    if(warned.length>0){
+      const last=warned[warned.length-1];
+      const startStr=`${last.start.m+1}/${last.start.d}`;
+      const endStr=`${last.end.m+1}/${last.end.d}`;
+      parts.push(`<span class="bx" style="background:#fff0cc;color:#7a5000;border:1px solid #e8c840">⚠ 連續上班 ${last.len} 天（${startStr}–${endStr}）</span>`);
+    }
     row+=`<td class="mcc">${parts.join(' ')||'<span style="font-size:11px;color:#bbb">—</span>'}</td></tr>`;
     b+=row;
   });
