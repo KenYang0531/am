@@ -116,6 +116,8 @@ input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 
     <select id="sm" onchange="render()"></select>
     <select id="sy" onchange="render()"></select>
     <button class="bsm" onclick="openEmpModal()">＋ 新增員工</button>
+    <button class="bsm" id="lock-btn" onclick="toggleLock()" style="margin-left:4px"></button>
+    <span id="lock-notice" style="font-size:12px;color:#b87010;display:none">📋 本月已鎖定，僅供檢視</span>
   </div>
   <div class="topbar" style="margin-top:-6px;margin-bottom:10px">
     <div class="legend">
@@ -315,6 +317,36 @@ function fmtDateFull(d){if(!d) return '—';return `${d.getFullYear()}/${d.getMo
 let emps=[],att={},nid=1,editEmpId=null;
 function K(e,y,m,d){return `${e}-${y}-${m}-${d}`;}
 
+// ── Lock management ──
+function lockKey(y,m){return `lock-${y}-${m}`;}
+function isMonthPast(y,m){
+  const now=new Date();
+  return y<now.getFullYear()||(y===now.getFullYear()&&m<now.getMonth());
+}
+function isLocked(y,m){
+  const k=lockKey(y,m);
+  const stored=localStorage.getItem(k);
+  if(stored!==null) return stored==='1'; // manual override
+  return isMonthPast(y,m); // default: past months locked
+}
+function toggleLock(){
+  const {y,m}=getYM(1);
+  const k=lockKey(y,m);
+  const current=isLocked(y,m);
+  localStorage.setItem(k,current?'0':'1');
+  render();
+}
+function updateLockUI(y,m){
+  const locked=isLocked(y,m);
+  const btn=document.getElementById('lock-btn');
+  const notice=document.getElementById('lock-notice');
+  if(btn){
+    btn.textContent=locked?'🔓 解鎖本月':'🔒 鎖定本月';
+    btn.style.color=locked?'#b87010':'#555';
+  }
+  if(notice) notice.style.display=locked?'inline':'none';
+}
+
 // Calculate sick leave hours for a day
 // Full-day (no time): 8h; with time: net hours
 function daySickHours(eid,y,m,d){
@@ -445,6 +477,8 @@ function getYM(n){
 
 function render(){
   const {y,m}=getYM(1),days=dim(y,m),now=new Date();
+  const locked=isLocked(y,m);
+  updateLockUI(y,m);
   const tbl=document.getElementById('stbl');
   // Use monthEnd so special leave entered anywhere in the month is counted
   const monthEnd=new Date(y,m+1,0);
@@ -506,13 +540,13 @@ function render(){
       else if(cr<0) ctag=`<span class="comp-tag cn">${cr}h</span>`;
       else if(storedIn!==null||storedOut!==null) ctag=`<span class="comp-tag cz">±0h</span>`;
       row+=`<td class="${cellCls}"><div class="dc">
-        <select class="lv-sel" onchange="setLeave(${emp.id},${y},${m},${d},this.value)">${opts}</select>
+        <select class="lv-sel" ${locked?'disabled style="background:#f4f4f2;color:#aaa"':''} onchange="setLeave(${emp.id},${y},${m},${d},this.value)">${opts}</select>
         <div class="time-stack">
           <div class="time-field">
             <span class="time-lbl">上</span>
             <input class="ti${storedIn!==null?' has-val':''}" type="text" maxlength="5"
               placeholder="${phIn}" value="${storedIn!==null?fmtH(storedIn):''}"
-              ${isFullDay?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
+              ${(isFullDay||locked)?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
               onblur="setTime(${emp.id},${y},${m},${d},'in',this.value)"
               onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'in')">
           </div>
@@ -520,7 +554,7 @@ function render(){
             <span class="time-lbl">下</span>
             <input class="ti${storedOut!==null?' has-val':''}" type="text" maxlength="5"
               placeholder="${phOut}" value="${storedOut!==null?fmtH(storedOut):''}"
-              ${isFullDay?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
+              ${(isFullDay||locked)?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
               onblur="setTime(${emp.id},${y},${m},${d},'out',this.value)"
               onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'out')">
           </div>
@@ -528,7 +562,7 @@ function render(){
             <span class="time-lbl" style="color:#e0a060">休</span>
             <input class="ti${storedBrk!==null?' has-val':''}" type="text" maxlength="5"
               placeholder="${phBrk}" value="${storedBrk!==null?fmtH(storedBrk):''}"
-              ${isFullDay?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
+              ${(isFullDay||locked)?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
               onblur="setBreak(${emp.id},${y},${m},${d},this.value)"
               onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'brk')">
           </div>
@@ -624,18 +658,21 @@ function timeKey(e,el,eid,y,m,d,which){
 
 const FULL_LEAVES=['特休','補休','上課假'];
 function setLeave(eid,y,m,d,val){
+  if(isLocked(y,m)) return;
   const k=K(eid,y,m,d);if(!att[k])att[k]={};
   att[k].leave=val;
   if(FULL_LEAVES.includes(val)){att[k].inH=null;att[k].outH=null;att[k].brk=null;}
   render();apiSetAtt(k,att[k]);
 }
 function setBreak(eid,y,m,d,val){
+  if(isLocked(y,m)) return;
   const k=K(eid,y,m,d);if(!att[k])att[k]={};
   att[k].brk=parseH(val);
   apiSetAtt(k,att[k]);
   render();
 }
 function setTime(eid,y,m,d,which,val){
+  if(isLocked(y,m)) return;
   const k=K(eid,y,m,d);if(!att[k])att[k]={};
   att[k][which==='in'?'inH':'outH']=parseH(val);
   apiSetAtt(k,att[k]);
