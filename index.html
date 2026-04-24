@@ -497,7 +497,7 @@ function render(){
             <input class="ti${storedIn!==null?' has-val':''}" type="text" maxlength="5"
               placeholder="${phIn}" value="${storedIn!==null?fmtH(storedIn):''}"
               ${isFullDay?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
-              onchange="setTime(${emp.id},${y},${m},${d},'in',this.value)"
+              onblur="setTime(${emp.id},${y},${m},${d},'in',this.value)"
               onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'in')">
           </div>
           <div class="time-field">
@@ -505,7 +505,7 @@ function render(){
             <input class="ti${storedOut!==null?' has-val':''}" type="text" maxlength="5"
               placeholder="${phOut}" value="${storedOut!==null?fmtH(storedOut):''}"
               ${isFullDay?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
-              onchange="setTime(${emp.id},${y},${m},${d},'out',this.value)"
+              onblur="setTime(${emp.id},${y},${m},${d},'out',this.value)"
               onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'out')">
           </div>
           <div class="time-field">
@@ -513,7 +513,7 @@ function render(){
             <input class="ti${storedBrk!==null?' has-val':''}" type="text" maxlength="5"
               placeholder="${phBrk}" value="${storedBrk!==null?fmtH(storedBrk):''}"
               ${isFullDay?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
-              onchange="setBreak(${emp.id},${y},${m},${d},this.value)"
+              onblur="setBreak(${emp.id},${y},${m},${d},this.value)"
               onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'brk')">
           </div>
         </div>
@@ -569,11 +569,15 @@ function setLeave(eid,y,m,d,val){
 }
 function setBreak(eid,y,m,d,val){
   const k=K(eid,y,m,d);if(!att[k])att[k]={};
-  att[k].brk=parseH(val);render();apiSetAtt(k,att[k]);
+  att[k].brk=parseH(val);
+  apiSetAtt(k,att[k]);
+  render();
 }
 function setTime(eid,y,m,d,which,val){
   const k=K(eid,y,m,d);if(!att[k])att[k]={};
-  att[k][which==='in'?'inH':'outH']=parseH(val);render();apiSetAtt(k,att[k]);
+  att[k][which==='in'?'inH':'outH']=parseH(val);
+  apiSetAtt(k,att[k]);
+  render();
 }
 function delEmp(id){
   if(!confirm('確定刪除此員工？')) return;
@@ -758,9 +762,9 @@ async function loadData(){
       attRows.forEach(r=>{
         att[r.att_key]={
           leave:r.leave||'',
-          inH:r.time_in!=null?r.time_in:null,
-          outH:r.time_out!=null?r.time_out:null,
-          brk:r.time_brk!=null?r.time_brk:null
+          inH:(r.checkin!=null&&r.checkin!==0)?r.checkin:null,
+          outH:(r.checkout!=null&&r.checkout!==0)?r.checkout:null,
+          brk:(r.breaktime!=null&&r.breaktime!==0)?r.breaktime:null
         };
         if(att[r.att_key].leave==='') delete att[r.att_key].leave;
       });
@@ -774,31 +778,51 @@ async function loadData(){
 }
 
 async function apiSetAtt(key,val){
-  const isEmpty=!val.leave&&val.inH==null&&val.outH==null&&val.brk==null;
   setStatus('…');
   debounce('att:'+key,async()=>{
+    const latest=att[key]||{};
+    const isEmpty=!latest.leave&&latest.inH==null&&latest.outH==null&&latest.brk==null;
     setStatus('儲存中…');
     try{
       if(isEmpty){
+        // Delete the row
         await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}`,{
           method:'DELETE',headers:supaHeaders()
         });
       } else {
-        await fetch(`${SUPA_URL}/rest/v1/attendance`,{
-          method:'POST',
-          headers:supaHeaders({'Prefer':'resolution=merge-duplicates'}),
-          body:JSON.stringify({
-            att_key:key,
-            leave:val.leave||null,
-            time_in:val.inH!=null?val.inH:null,
-            time_out:val.outH!=null?val.outH:null,
-            time_brk:val.brk!=null?val.brk:null
-          })
-        });
+        // Check if row exists first
+        const checkRes=await fetch(
+          `${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}&select=att_key`,
+          {headers:supaHeaders()}
+        );
+        const rows=await checkRes.json();
+        const exists=Array.isArray(rows)&&rows.length>0;
+
+        const body={
+          att_key:key,
+          leave:latest.leave||null,
+          checkin:latest.inH!=null?latest.inH:0,
+          checkout:latest.outH!=null?latest.outH:0,
+          breaktime:latest.brk!=null?latest.brk:0
+        };
+
+        if(exists){
+          // PATCH: update existing row with full latest state
+          await fetch(
+            `${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}`,
+            {method:'PATCH', headers:supaHeaders({'Prefer':'return=minimal'}), body:JSON.stringify(body)}
+          );
+        } else {
+          // INSERT: new row
+          await fetch(
+            `${SUPA_URL}/rest/v1/attendance`,
+            {method:'POST', headers:supaHeaders({'Prefer':'return=minimal'}), body:JSON.stringify(body)}
+          );
+        }
       }
       setStatus('已儲存 ✓');
     }catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
-  });
+  },1500);
 }
 
 async function apiSaveEmp(emp){
