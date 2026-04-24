@@ -338,13 +338,15 @@ function toggleLock(){
 }
 function updateLockUI(y,m){
   const locked=isLocked(y,m);
+  const isPast=isMonthPast(y,m);
   const btn=document.getElementById('lock-btn');
   const notice=document.getElementById('lock-notice');
   if(btn){
+    btn.style.display=isPast?'inline':'none';
     btn.textContent=locked?'🔓 解鎖本月':'🔒 鎖定本月';
     btn.style.color=locked?'#b87010':'#555';
   }
-  if(notice) notice.style.display=locked?'inline':'none';
+  if(notice) notice.style.display=(isPast&&locked)?'inline':'none';
 }
 
 // Calculate sick leave hours for a day
