@@ -591,65 +591,126 @@ function saveEmp(){
   }
 }
 
-// ── Google Sheets API ──
-const API_URL='https://script.google.com/macros/s/AKfycbw9GJucTL09dEJT_PueaqkZQxbgymGgPZN1t22r53cqSkjx0JJzQwpNs76PxNBQdnNY/exec';
+// ── Supabase API ──
+const SUPA_URL='https://hsinxzpvgnhccjccfprg.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzaW54enB2Z25oY2NqY2NmcHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDYwNjMsImV4cCI6MjA5MjYyMjA2M30.1zv5Te938hMrGntDgolYcShYtlPdA2rJWZEYHtgq8Nc';
+
+function supaHeaders(extra={}){
+  return {
+    'Content-Type':'application/json',
+    'apikey':SUPA_KEY,
+    'Authorization':`Bearer ${SUPA_KEY}`,
+    ...extra
+  };
+}
+
 function setStatus(msg,isErr){
   const el=document.getElementById('sync-status');
   if(!el) return;
   el.textContent=msg;el.style.color=isErr?'#b82020':'#1a7a50';el.style.opacity='1';
   if(!isErr) setTimeout(()=>{el.style.opacity='0';},2500);
 }
-async function apiPost(body){
-  const res=await fetch(API_URL,{method:'POST',body:JSON.stringify(body)});
-  const data=await res.json();
-  if(data.error) throw new Error(data.error);
-  return data;
-}
+
 const _debouncers={};
 function debounce(id,fn,delay=800){clearTimeout(_debouncers[id]);_debouncers[id]=setTimeout(fn,delay);}
+
+async function loadData(){
+  setStatus('載入中…');
+  try{
+    // 載入員工
+    const empRes=await fetch(`${SUPA_URL}/rest/v1/employees?select=*&order=id`,{
+      headers:supaHeaders({'Prefer':'return=representation'})
+    });
+    const employees=await empRes.json();
+    if(Array.isArray(employees)&&employees.length>0){
+      emps=employees.map(e=>({
+        id:e.id, name:e.name, joinDate:e.joinDate,
+        classMax:e.classMax||0, compBal:e.compBal||0
+      }));
+      nid=Math.max(...emps.map(e=>e.id))+1;
+    }
+
+    // 載入差勤
+    const attRes=await fetch(`${SUPA_URL}/rest/v1/attendance?select=*`,{
+      headers:supaHeaders({'Prefer':'return=representation'})
+    });
+    const attRows=await attRes.json();
+    att={};
+    if(Array.isArray(attRows)){
+      attRows.forEach(r=>{
+        att[r.att_key]={
+          leave:r.leave||'',
+          inH:r.inH!=null?r.inH:null,
+          outH:r.outH!=null?r.outH:null,
+          brk:r.brk!=null?r.brk:null
+        };
+        if(att[r.att_key].leave==='') delete att[r.att_key].leave;
+      });
+    }
+    setStatus('已同步');
+  }catch(err){
+    setStatus('載入失敗：'+err.message,true);
+    console.error(err);
+  }
+  render();
+}
+
 async function apiSetAtt(key,val){
   const isEmpty=!val.leave&&val.inH==null&&val.outH==null&&val.brk==null;
   setStatus('…');
   debounce('att:'+key,async()=>{
     setStatus('儲存中…');
     try{
-      if(isEmpty) await apiPost({action:'delAttendance',key});
-      else await apiPost({action:'setAttendance',key,val});
+      if(isEmpty){
+        await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}`,{
+          method:'DELETE',headers:supaHeaders()
+        });
+      } else {
+        await fetch(`${SUPA_URL}/rest/v1/attendance`,{
+          method:'POST',
+          headers:supaHeaders({'Prefer':'resolution=merge-duplicates'}),
+          body:JSON.stringify({
+            att_key:key,
+            leave:val.leave||null,
+            inH:val.inH!=null?val.inH:null,
+            outH:val.outH!=null?val.outH:null,
+            brk:val.brk!=null?val.brk:null
+          })
+        });
+      }
       setStatus('已儲存 ✓');
     }catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
   });
 }
+
 async function apiSaveEmp(emp){
   setStatus('儲存中…');
-  try{await apiPost({action:'saveEmployee',emp});setStatus('已儲存 ✓');}
-  catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
+  try{
+    await fetch(`${SUPA_URL}/rest/v1/employees`,{
+      method:'POST',
+      headers:supaHeaders({'Prefer':'resolution=merge-duplicates'}),
+      body:JSON.stringify({
+        id:emp.id, name:emp.name, joinDate:emp.joinDate,
+        classMax:emp.classMax, compBal:emp.compBal
+      })
+    });
+    setStatus('已儲存 ✓');
+  }catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
 }
+
 async function apiDelEmp(id){
   setStatus('儲存中…');
-  try{await apiPost({action:'delEmployee',id:String(id)});setStatus('已儲存 ✓');}
-  catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
-}
-async function loadData(){
-  setStatus('載入中…');
   try{
-    const res=await fetch(`${API_URL}?action=getAll`);
-    const data=await res.json();
-    if(data.error) throw new Error(data.error);
-    if(data.employees&&data.employees.length>0){
-      emps=data.employees.map(e=>({id:+e.id,name:e.name,joinDate:e.joinDate,classMax:+e.classMax||0,compBal:+e.compBal||0}));
-      nid=Math.max(...emps.map(e=>e.id))+1;
-    }
-    if(data.attendance){
-      att={};
-      Object.entries(data.attendance).forEach(([key,val])=>{
-        att[key]={leave:val.leave||'',inH:val.inH!==''&&val.inH!=null?+val.inH:null,outH:val.outH!==''&&val.outH!=null?+val.outH:null,brk:val.brk!==''&&val.brk!=null?+val.brk:null};
-        if(att[key].leave==='') delete att[key].leave;
-      });
-    }
-    setStatus('已同步');
-  }catch(err){setStatus('載入失敗：'+err.message,true);console.error(err);}
-  render();
+    await fetch(`${SUPA_URL}/rest/v1/employees?id=eq.${id}`,{
+      method:'DELETE',headers:supaHeaders()
+    });
+    await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=like.${id}-%`,{
+      method:'DELETE',headers:supaHeaders()
+    });
+    setStatus('已儲存 ✓');
+  }catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
 }
+
 initSel();loadData();
 </script>
 </body>
