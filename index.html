@@ -235,7 +235,7 @@ function daySickHours(eid,y,m,d){
   const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
   const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
   if(outH<=inH) return 0;
-  const brk=rec.brk!=null?rec.brk:0; // no default lunch deduction for sick leave
+  const brk=rec.brk!=null?rec.brk:DEFAULT_BRK; // same default as workday
   return +Math.max(0,outH-inH-brk).toFixed(1);
 }
 
