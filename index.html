@@ -86,6 +86,19 @@ input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 
 .bpri{padding:7px 20px;border-radius:7px;border:none;background:#111;color:#fff;font-size:13px;cursor:pointer}
 .bpri:hover{background:#333}
 .bcan{padding:7px 20px;border-radius:7px;border:1px solid #ccc;background:transparent;color:#666;font-size:13px;cursor:pointer}
+/* ── Help page ── */
+.help-wrap{max-width:720px;display:flex;flex-direction:column;gap:28px;padding:4px 0 24px}
+.help-section{background:#fff;border:1px solid #e0e0de;border-radius:10px;padding:20px 24px}
+.help-title{font-size:16px;font-weight:600;color:#111;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #e8e8e6}
+.help-sub{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}
+.help-p{font-size:13px;color:#444;line-height:1.7}
+.help-list{font-size:13px;color:#444;line-height:1.8;padding-left:18px}
+.help-list li{margin-bottom:2px}
+.help-list code{font-family:monospace;background:#f0f0ee;padding:1px 5px;border-radius:3px;font-size:12px}
+.help-table{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.ht-row{display:flex;align-items:flex-start;gap:12px;font-size:13px;color:#444;line-height:1.6}
+.ht-label{font-size:12px;font-weight:500;background:#f0f0ee;color:#555;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.help-color{display:inline-block;width:14px;height:14px;border-radius:2px;vertical-align:middle;margin-right:6px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -94,6 +107,7 @@ input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 
 <div class="tabs">
   <button class="tb on" onclick="showPg('schedule',this)">月份時間表</button>
   <button class="tb" onclick="showPg('summary',this)">差勤總表</button>
+  <button class="tb" onclick="showPg('help',this)">使用說明</button>
   <span id="sync-status" style="margin-left:auto;font-size:12px;color:#1a7a50;padding:10px 4px;transition:opacity 1s;opacity:0"></span>
 </div>
 <div class="pg on" id="pg-schedule">
@@ -124,7 +138,83 @@ input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 
   <div class="tw"><table class="dt" id="dtbl"></table></div>
   <div class="anno-box" id="anno-box"></div>
 </div>
+<!-- HELP PAGE -->
+<div class="pg" id="pg-help">
+  <div class="help-wrap">
+    <div class="help-section">
+      <div class="help-title">月份時間表</div>
+      <div class="help-sub">基本操作</div>
+      <p class="help-p">選擇年份和月份後，表格會顯示該月每一天。每個格子由上到下分為：假別選單、上班時間、下班時間、休息時間、補休標籤。</p>
+      <div class="help-sub">假別說明</div>
+      <div class="help-table">
+        <div class="ht-row"><span class="bx b特休">特休</span><span>全日休假，時間欄位自動鎖定。用完後選項變灰無法選取。</span></div>
+        <div class="ht-row"><span class="bx b病假">病假</span><span>可全日（不填時間，計 8 小時）或半日（填入時間，依實際計算）。</span></div>
+        <div class="ht-row"><span class="bx b事假">事假</span><span>全日休假，時間欄位自動鎖定。</span></div>
+        <div class="ht-row"><span class="bx b補休">補休</span><span>使用補休假，扣除 8 小時補休餘額。</span></div>
+        <div class="ht-row"><span class="bx b上課假">上課假</span><span>每月有上限，達到上限後選項變灰無法選取。</span></div>
+      </div>
+      <div class="help-sub">時間輸入</div>
+      <ul class="help-list">
+        <li>支援格式：<code>10:00</code>、<code>1000</code>、<code>1030</code></li>
+        <li>平日預設：上班 10:00、下班 19:00、休息 01:00</li>
+        <li>鍵盤 ↑↓ 可以 30 分鐘為單位調整，游標點入欄位後使用</li>
+        <li>假日與週末欄位預設空白</li>
+      </ul>
+      <div class="help-sub">補休計算規則</div>
+      <ul class="help-list">
+        <li>平日：實際工時（下班 − 上班 − 休息）− 8 小時</li>
+        <li>假日／週末有填時間：實際工時全數計入補休</li>
+        <li>全日補休假：扣除 8 小時</li>
+        <li>選擇病假時補休增減為 ±0，不論是否有填時間</li>
+      </ul>
+      <div class="help-sub">顏色說明</div>
+      <ul class="help-list">
+        <li><span class="help-color" style="background:#fff;border:1px solid #ddd"></span>白底：平日</li>
+        <li><span class="help-color" style="background:#ffeae0"></span>淡桃底：假日／週末</li>
+        <li><span class="help-color" style="background:#ddeeff"></span>淡藍底：今天</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <div class="help-title">差勤總表</div>
+      <p class="help-p">顯示每位員工當月的請假與補休統計，分為請假、特休、補休三個區塊。</p>
+      <div class="help-sub">請假區塊</div>
+      <ul class="help-list">
+        <li>病假以小時計算（全日 = 8 小時）</li>
+        <li>事假以天計算</li>
+        <li>上課假顯示「已用 / 上限」</li>
+      </ul>
+      <div class="help-sub">特休區塊</div>
+      <ul class="help-list">
+        <li>顯示「已用 / 總天數」</li>
+        <li>總天數依到職年資自動計算：<br>滿 6 個月 3 天、滿 1 年 7 天、滿 2 年 10 天、滿 3 年 14 天、滿 5 年 15 天、滿 10 年起每年 +1 天，上限 30 天</li>
+        <li>重置日：首次為到職後第 6 個月，之後每年到職週年日重置</li>
+      </ul>
+      <div class="help-sub">補休區塊</div>
+      <ul class="help-list">
+        <li>本月增減：當月加班或補休假的總時數變化</li>
+        <li>餘額：從上次補休重置日累積至今的補休時數</li>
+        <li>補休重置日為每年到職週年日，重置後餘額歸零</li>
+      </ul>
+      <div class="help-sub">本月重置通知</div>
+      <p class="help-p">若當月有員工的特休或補休到達重置日，表格下方會顯示通知，列出重置前的剩餘特休天數與補休時數。</p>
+    </div>
+    <div class="help-section">
+      <div class="help-title">員工管理</div>
+      <ul class="help-list">
+        <li>點擊員工名稱旁的 <b>✎</b> 可編輯員工資料</li>
+        <li>點擊 <b>✕</b> 可刪除員工（同時刪除該員工所有差勤記錄）</li>
+        <li>點擊頁面上方「＋ 新增員工」可新增</li>
+      </ul>
+      <div class="help-sub">欄位說明</div>
+      <div class="help-table">
+        <div class="ht-row"><span class="ht-label">到職日期</span><span>用於計算年資、特休天數及重置日</span></div>
+        <div class="ht-row"><span class="ht-label">上課假上限</span><span>每月可請上課假的天數上限</span></div>
+        <div class="ht-row"><span class="ht-label">補休餘額基數</span><span>系統建立前已累積的補休時數，僅在未達第一個補休重置日前有效</span></div>
+      </div>
+    </div>
+  </div>
 </div>
+</div><!-- end .app -->
 <div class="mbg" id="memp">
   <div class="md">
     <h3 id="memp-title">新增員工</h3>
@@ -668,9 +758,9 @@ async function loadData(){
       attRows.forEach(r=>{
         att[r.att_key]={
           leave:r.leave||'',
-          inH:r.t_in!=null?r.t_in:null,
-          outH:r.t_out!=null?r.t_out:null,
-          brk:r.t_brk!=null?r.t_brk:null
+          inH:r.time_in!=null?r.time_in:null,
+          outH:r.time_out!=null?r.time_out:null,
+          brk:r.time_brk!=null?r.time_brk:null
         };
         if(att[r.att_key].leave==='') delete att[r.att_key].leave;
       });
@@ -700,9 +790,9 @@ async function apiSetAtt(key,val){
           body:JSON.stringify({
             att_key:key,
             leave:val.leave||null,
-            t_in:val.inH!=null?val.inH:null,
-            t_out:val.outH!=null?val.outH:null,
-            t_brk:val.brk!=null?val.brk:null
+            time_in:val.inH!=null?val.inH:null,
+            time_out:val.outH!=null?val.outH:null,
+            time_brk:val.brk!=null?val.brk:null
           })
         });
       }
