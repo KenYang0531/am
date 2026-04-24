@@ -668,9 +668,9 @@ async function loadData(){
       attRows.forEach(r=>{
         att[r.att_key]={
           leave:r.leave||'',
-          inH:r.inH!=null?r.inH:null,
-          outH:r.outH!=null?r.outH:null,
-          brk:r.brk!=null?r.brk:null
+          inH:r.t_in!=null?r.t_in:null,
+          outH:r.t_out!=null?r.t_out:null,
+          brk:r.t_brk!=null?r.t_brk:null
         };
         if(att[r.att_key].leave==='') delete att[r.att_key].leave;
       });
@@ -700,9 +700,9 @@ async function apiSetAtt(key,val){
           body:JSON.stringify({
             att_key:key,
             leave:val.leave||null,
-            inH:val.inH!=null?val.inH:null,
-            outH:val.outH!=null?val.outH:null,
-            brk:val.brk!=null?val.brk:null
+            t_in:val.inH!=null?val.inH:null,
+            t_out:val.outH!=null?val.outH:null,
+            t_brk:val.brk!=null?val.brk:null
           })
         });
       }
