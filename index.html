@@ -351,17 +351,17 @@ function updateLockUI(y,m){
 }
 
 // Calculate sick leave hours for a day
-// Full-day (no time): 8h; with time: net hours
 function daySickHours(eid,y,m,d){
   const rec=att[K(eid,y,m,d)]||{};
   if((rec.leave||'')!=='病假') return 0;
   const hasTime=(rec.inH!=null||rec.outH!=null);
-  if(!hasTime) return STD;
+  if(!hasTime) return STD; // full day = 8h
   const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
   const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
   if(outH<=inH) return 0;
   const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;
-  return +Math.max(0,outH-inH-brk).toFixed(1);
+  const workedH=Math.max(0,outH-inH-brk);
+  return +Math.max(0,STD-workedH).toFixed(1); // sick = 8 - worked
 }
 function monthSickHours(eid,y,m){
   let total=0;
@@ -374,12 +374,13 @@ function dayPersonalHours(eid,y,m,d){
   const rec=att[K(eid,y,m,d)]||{};
   if((rec.leave||'')!=='事假') return 0;
   const hasTime=(rec.inH!=null||rec.outH!=null);
-  if(!hasTime) return STD;
+  if(!hasTime) return STD; // full day = 8h
   const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
   const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
   if(outH<=inH) return 0;
   const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;
-  return +Math.max(0,outH-inH-brk).toFixed(1);
+  const workedH=Math.max(0,outH-inH-brk);
+  return +Math.max(0,STD-workedH).toFixed(1); // personal = 8 - worked
 }
 function monthPersonalHours(eid,y,m){
   let total=0;
