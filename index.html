@@ -3,960 +3,604 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>差勤管理系統</title>
+<title>安妮暑期實習生計畫 — 你適合嗎？</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f3f3f1;color:#1a1a1a;font-size:14px}
-.app{max-width:1800px;margin:0 auto;padding:20px 16px}
-h1{font-size:20px;font-weight:600;margin-bottom:18px}
-.tabs{display:flex;margin-bottom:18px;border-bottom:1.5px solid #ddd}
-.tb{padding:9px 22px;font-size:14px;border:none;background:transparent;cursor:pointer;color:#888;border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
-.tb.on{color:#111;border-bottom-color:#111;font-weight:500}
-.tb:hover:not(.on){color:#333}
-.pg{display:none}.pg.on{display:block}
-.topbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-.topbar label{font-size:13px;color:#666}
-select{font-size:13px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#111;height:32px;cursor:pointer}
-input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#111;height:32px}
-.bsm{font-size:13px;padding:5px 14px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#111;cursor:pointer;height:32px}
-.bsm:hover{background:#ebebea}
-.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.leg{display:flex;align-items:center;gap:4px;font-size:11px;color:#666}
-.leg-dot{width:12px;height:12px;border-radius:2px;flex-shrink:0}
-.sw{overflow-x:auto;border:1px solid #e0e0de;border-radius:10px;background:#fff}
-.st{border-collapse:collapse;font-size:11px;table-layout:fixed}
-.st th{background:#f6f6f4;padding:4px 2px;font-size:10px;font-weight:500;color:#555;text-align:center;border-bottom:1px solid #e4e4e2;border-right:1px solid #e4e4e2;white-space:nowrap;line-height:1.4;overflow:hidden}
-.st th.nc{text-align:center;padding:4px;position:sticky;left:0;z-index:3;background:#f6f6f4}
-.st th.mc{text-align:left;padding-left:8px}
-.st td{padding:2px 2px;border-bottom:1px solid #e4e4e2;border-right:1px solid #e4e4e2;vertical-align:top;overflow:hidden}
-.st td.ncc{text-align:center;padding:6px 6px;font-weight:500;font-size:13px;white-space:nowrap;position:sticky;left:0;background:#fff;z-index:2;vertical-align:middle}
-.st td.mcc{padding:4px 8px;vertical-align:middle}
-.st tr:last-child td{border-bottom:none}
-.st td:last-child,.st th:last-child{border-right:none}
-.dc{display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:3px 3px;width:100%;overflow:hidden}
-.lv-sel{font-size:10px;width:100%;height:21px;padding:0 2px;border-radius:3px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#111;min-width:0}
-.lv-sel:focus{outline:1px solid #4a90d9}
-.time-stack{display:flex;flex-direction:column;gap:2px;width:100%}
-.time-field{display:flex;align-items:center;gap:2px;width:100%}
-.time-lbl{font-size:9px;color:#bbb;width:11px;flex-shrink:0;text-align:right;line-height:1}
-.ti{font-size:10px;flex:1;min-width:0;width:0;height:20px;padding:0 2px;border-radius:2px;border:1px solid #ddd;text-align:center;background:#fff;color:#111}
-.ti:focus{outline:1px solid #4a90d9;border-color:#4a90d9}
-.ti.has-val{border-color:#999;background:#f7f7f5;font-weight:600}
-.comp-tag{font-size:9px;font-weight:600;border-radius:2px;padding:1px 3px;line-height:1.4;white-space:nowrap;text-align:center;margin-top:1px}
-.cp{background:#e2f5e8;color:#1a6a35}
-.cn{background:#fde8e8;color:#8a1a1a}
-.cz{background:#f0f0ee;color:#777}
-.offday{background:#ffeae0}
-.tdy{background:#ddeeff!important}
-.bx{display:inline-block;font-size:10px;padding:1px 5px;border-radius:3px;font-weight:500;white-space:nowrap;margin:1px 1px}
-.b特休{background:#ddeeff;color:#1a5a9a}
-.b病假{background:#fef0da;color:#7a4a0a}
-.b事假{background:#eeecff;color:#4a3899}
-.b補休{background:#e8f5e2;color:#2a5e15}
-.b上課假{background:#fde8f2;color:#7a2060}
-.tw{border:1px solid #e0e0de;border-radius:10px;overflow:hidden;overflow-x:auto;background:#fff}
-.dt{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap;table-layout:fixed}
-.dt th{background:#f6f6f4;padding:9px 6px;font-size:11px;font-weight:500;color:#888;text-align:center;border-bottom:1px solid #e4e4e2}
-.dt th.sec-head{background:#eeeef0;color:#555;font-size:11px;font-weight:600;letter-spacing:.3px;border-top:2px solid #d0d0d4}
-.dt td{padding:9px 6px;border-bottom:1px solid #e4e4e2;color:#111;text-align:center;overflow:hidden;text-overflow:ellipsis}
-.dt tr:last-child td{border-bottom:none}
-.dt tr:hover td{background:#f9f9f7}
-.dt .sec-div{border-right:2px solid #d8d8dc}
-.rok{color:#1a7a50;font-weight:600}.rlo{color:#b87010;font-weight:600}.rno{color:#b82020;font-weight:600}
-.cpos{color:#1a6a35;font-weight:600}.cneg{color:#b82020;font-weight:600}
-.anno-box{margin-top:14px;display:flex;flex-direction:column;gap:6px}
-.anno{font-size:12px;color:#555;background:#fff8f0;border-left:3px solid #e8a060;border-radius:0 6px 6px 0;padding:8px 12px;line-height:1.7}
-.anno strong{color:#b85000}
-.av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;margin-right:6px;vertical-align:middle;flex-shrink:0}
-.db{font-size:11px;color:#bbb;cursor:pointer;margin-left:4px;opacity:.5}
-.db:hover{opacity:1;color:#c00}
-.eb{font-size:12px;color:#aaa;cursor:pointer;margin-left:4px}
-.eb:hover{color:#333}
-.hint{font-size:12px;color:#999;margin-bottom:10px;line-height:1.6}
-.stitle{font-size:14px;font-weight:600;margin-bottom:5px}
-.tip{font-size:11px;color:#aaa}
-.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center}
-.mbg.on{display:flex}
-.md{background:#fff;border-radius:12px;border:1px solid #ddd;padding:24px;width:400px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.14)}
-.md h3{font-size:16px;font-weight:600;margin-bottom:14px}
-.md label{font-size:13px;color:#555;display:block;margin-top:12px;margin-bottom:3px}
-.md input,.md select{width:100%}
-.md .sub{font-size:11px;color:#aaa;margin-top:3px}
-.mbtns{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
-.bpri{padding:7px 20px;border-radius:7px;border:none;background:#111;color:#fff;font-size:13px;cursor:pointer}
-.bpri:hover{background:#333}
-.bcan{padding:7px 20px;border-radius:7px;border:1px solid #ccc;background:transparent;color:#666;font-size:13px;cursor:pointer}
-/* ── Help page ── */
-.help-wrap{max-width:720px;display:flex;flex-direction:column;gap:28px;padding:4px 0 24px}
-.help-section{background:#fff;border:1px solid #e0e0de;border-radius:10px;padding:20px 24px}
-.help-title{font-size:16px;font-weight:600;color:#111;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #e8e8e6}
-.help-sub{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}
-.help-p{font-size:13px;color:#444;line-height:1.7}
-.help-list{font-size:13px;color:#444;line-height:1.8;padding-left:18px}
-.help-list li{margin-bottom:2px}
-.help-list code{font-family:monospace;background:#f0f0ee;padding:1px 5px;border-radius:3px;font-size:12px}
-.help-table{display:flex;flex-direction:column;gap:8px;margin-top:4px}
-.ht-row{display:flex;align-items:flex-start;gap:12px;font-size:13px;color:#444;line-height:1.6}
-.ht-label{font-size:12px;font-weight:500;background:#f0f0ee;color:#555;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0;margin-top:1px}
-.help-color{display:inline-block;width:14px;height:14px;border-radius:2px;vertical-align:middle;margin-right:6px;flex-shrink:0}
+  :root {
+    --navy:   #2A5298;
+    --blue:   #3A6BC4;
+    --orange: #D4821A;
+    --orange-light: #E8971F;
+    --text:   #1A1A1A;
+    --muted:  #555555;
+    --light:  #F7F5F2;
+    --border: #E0DDD8;
+    --white:  #FFFFFF;
+    --bg:     #FAFAF8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--white);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    overflow-x: hidden;
+    line-height: 1.75;
+    font-weight: 400;
+  }
+
+  h1,h2,h3,h4 { font-family: 'Noto Sans TC', sans-serif; font-weight: 900; }
+  p, li { font-family: 'Noto Sans TC', sans-serif; font-weight: 400; }
+
+  /* ===== TOPBAR ===== */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    z-index: 200;
+  }
+  .logo-wrap { display: flex; flex-direction: column; gap: 1px; line-height: 1.2; }
+  .logo-en { font-size: 11px; font-weight: 900; letter-spacing: 2px; color: var(--navy); text-transform: uppercase; }
+  .logo-zh { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .topbar-nav { display: flex; align-items: center; gap: 28px; }
+  .topbar-nav a { font-size: 14px; color: var(--muted); text-decoration: none; transition: color 0.2s; font-weight: 500; }
+  .topbar-nav a:hover { color: var(--navy); }
+  .nav-cta { background: var(--orange); color: white !important; padding: 8px 20px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; transition: background 0.2s; text-decoration: none; display: inline-block; }
+  .nav-cta:hover { background: var(--orange-light) !important; }
+
+  /* ===== SECTIONS ===== */
+  section { display: none; padding-top: 60px; }
+  section.active { display: block; }
+
+  /* ===== LANDING ===== */
+  #landing { min-height: 100vh; position: relative; }
+  .landing-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 60px); }
+
+  .hero-left {
+    background: var(--navy);
+    padding: 72px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-left::before { content:''; position:absolute; bottom:-80px; right:-80px; width:320px; height:320px; border-radius:50%; background:rgba(212,130,26,0.12); pointer-events:none; }
+  .ecg-deco { position:absolute; top:50px; left:0; right:0; opacity:0.1; overflow:hidden; }
+  .ecg-deco svg { width:100%; }
+  .ecg-path { stroke:#fff; stroke-width:1.5; fill:none; stroke-dasharray:900; stroke-dashoffset:900; animation:ecgDraw 2.5s ease 0.3s forwards; }
+  @keyframes ecgDraw { to { stroke-dashoffset: 0; } }
+
+  .hero-eyebrow { font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--orange-light); margin-bottom:28px; opacity:0; animation:fadeUp 0.7s ease 0.2s forwards; }
+  .hero-title { font-size:clamp(32px,3.8vw,52px); font-weight:900; color:var(--white); line-height:1.2; margin-bottom:24px; opacity:0; animation:fadeUp 0.7s ease 0.4s forwards; }
+  .hero-title em { color:var(--orange-light); font-style:normal; display:block; }
+  .hero-desc { font-size:15px; color:rgba(255,255,255,0.72); line-height:1.85; max-width:360px; margin-bottom:40px; opacity:0; animation:fadeUp 0.7s ease 0.55s forwards; font-weight:400; }
+  .hero-btn { display:inline-flex; align-items:center; gap:12px; background:var(--orange); color:white; padding:16px 36px; font-size:16px; font-weight:700; border:none; cursor:pointer; transition:all 0.2s; width:fit-content; opacity:0; animation:fadeUp 0.7s ease 0.7s forwards; }
+  .hero-btn:hover { background:var(--orange-light); transform:translateY(-2px); box-shadow:0 8px 24px rgba(212,130,26,0.35); }
+
+  .hero-right { background:var(--light); padding:72px 60px; display:flex; flex-direction:column; justify-content:center; gap:32px; }
+  .section-mini-label { font-size:11px; font-weight:900; letter-spacing:3px; text-transform:uppercase; color:var(--orange); margin-bottom:16px; }
+
+  .meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; opacity:0; animation:fadeUp 0.7s ease 0.6s forwards; }
+  .meta-card { background:var(--white); border:1px solid var(--border); padding:18px 22px; border-left:3px solid var(--navy); }
+  .meta-label { font-size:10px; font-weight:700; letter-spacing:2px; color:var(--muted); margin-bottom:5px; text-transform:uppercase; }
+  .meta-value { font-size:15px; font-weight:900; color:var(--navy); }
+
+  .tracks-preview { opacity:0; animation:fadeUp 0.7s ease 0.8s forwards; }
+  .track-mini { display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid var(--border); }
+  .track-mini:last-child { border-bottom:none; }
+  .track-mini-icon { font-size:18px; min-width:26px; text-align:center; margin-top:2px; }
+  .track-mini-name { font-size:14px; font-weight:700; color:var(--navy); margin-bottom:4px; }
+  .track-mini-desc { font-size:13px; color:var(--muted); line-height:1.7; font-weight:400; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ===== ABOUT ===== */
+  #about { min-height:100vh; background:var(--bg); }
+  .about-hero { background:var(--navy); padding:64px 60px; color:white; }
+  .about-hero h2 { font-size:clamp(26px,3.5vw,44px); font-weight:900; margin-bottom:14px; line-height:1.2; }
+  .about-hero h2 em { color:var(--orange-light); font-style:normal; }
+  .about-hero p { color:rgba(255,255,255,0.72); max-width:580px; font-size:15px; font-weight:400; }
+
+  .about-body { max-width:1100px; margin:0 auto; padding:56px 60px; }
+  .section-label { font-size:11px; font-weight:900; letter-spacing:3px; text-transform:uppercase; color:var(--orange); margin-bottom:24px; }
+
+  .tracks-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:52px; }
+  .track-card { background:var(--white); border:1px solid var(--border); padding:28px; transition:border-color 0.2s,box-shadow 0.2s; }
+  .track-card:hover { border-color:var(--navy); box-shadow:0 4px 14px rgba(42,82,152,0.08); }
+  .track-icon { font-size:26px; margin-bottom:14px; display:block; }
+  .track-name { font-size:15px; font-weight:900; color:var(--navy); margin-bottom:9px; }
+  .track-desc { font-size:14px; color:var(--muted); line-height:1.8; font-weight:400; }
+
+  .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:var(--border); margin-bottom:52px; }
+  .stat-box { background:var(--white); padding:30px; text-align:center; }
+  .stat-num { font-size:34px; font-weight:900; color:var(--orange); display:block; margin-bottom:6px; }
+  .stat-label { font-size:13px; color:var(--muted); font-weight:400; }
+
+  .alumni-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:44px; }
+  .alumni-card { background:var(--white); border:1px solid var(--border); padding:26px; }
+  .alumni-name { font-size:15px; font-weight:900; color:var(--navy); margin-bottom:4px; }
+  .alumni-badge { font-size:11px; font-weight:700; color:var(--orange); letter-spacing:1px; margin-bottom:12px; }
+  .alumni-quote { font-size:14px; color:var(--muted); line-height:1.75; font-style:italic; border-left:3px solid var(--orange); padding-left:14px; font-weight:400; }
+
+  .about-cta { display:inline-flex; align-items:center; gap:10px; background:var(--orange); color:white; padding:15px 34px; font-size:16px; font-weight:700; border:none; cursor:pointer; transition:all 0.2s; }
+  .about-cta:hover { background:var(--orange-light); transform:translateY(-2px); box-shadow:0 8px 24px rgba(212,130,26,0.3); }
+
+  /* ===== QUIZ ===== */
+  #quiz { min-height:100vh; background:var(--bg); }
+  .quiz-header { background:var(--navy); padding:36px 60px 40px; color:white; }
+  .quiz-header h2 { font-size:20px; font-weight:900; margin-bottom:20px; }
+  .progress-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .progress-label { font-size:11px; font-weight:700; letter-spacing:2px; color:rgba(255,255,255,0.55); text-transform:uppercase; }
+  .progress-count { font-size:13px; font-weight:900; color:var(--orange-light); }
+  .progress-track { height:3px; background:rgba(255,255,255,0.15); border-radius:2px; }
+  .progress-fill { height:100%; background:var(--orange-light); border-radius:2px; transition:width 0.5s cubic-bezier(.4,0,.2,1); }
+
+  .quiz-body { max-width:780px; margin:0 auto; padding:52px 60px; }
+  .q-meta { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .q-num { font-size:12px; font-weight:900; color:white; background:var(--navy); width:30px; height:30px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border-radius:2px; }
+  .q-tag { font-size:10px; font-weight:900; letter-spacing:2px; color:var(--orange); text-transform:uppercase; border:1px solid var(--orange); padding:3px 10px; }
+
+  .q-text { font-size:clamp(17px,2.2vw,22px); font-weight:900; color:var(--navy); line-height:1.55; margin-bottom:28px; animation:fadeUp 0.4s ease forwards; }
+
+  .options-grid { display:grid; gap:10px; animation:fadeUp 0.4s ease 0.08s both; }
+  .option-btn { background:var(--white); border:1.5px solid var(--border); padding:18px 22px; text-align:left; cursor:pointer; display:flex; gap:14px; align-items:flex-start; color:var(--text); transition:all 0.18s; width:100%; }
+  .option-btn:hover { border-color:var(--navy); background:rgba(42,82,152,0.04); transform:translateX(4px); }
+  .option-btn.selected { border-color:var(--navy); background:rgba(42,82,152,0.06); box-shadow:inset 3px 0 0 var(--navy); }
+  .opt-letter { font-size:12px; font-weight:900; color:var(--navy); min-width:18px; margin-top:2px; }
+  .opt-text { font-size:15px; line-height:1.65; font-weight:400; text-align:left; }
+
+  /* back-btn 與 cont-btn 使用相同 padding，高度完全一致 */
+  .nav-row { display:flex; justify-content:space-between; align-items:center; margin-top:32px; padding-top:22px; border-top:1px solid var(--border); }
+  .back-btn { font-size:14px; font-weight:700; background:none; border:1.5px solid var(--border); color:var(--muted); padding:12px 28px; cursor:pointer; transition:all 0.2s; line-height:1; }
+  .back-btn:hover { border-color:var(--navy); color:var(--navy); }
+  /* 第一題時隱藏但保留空間，避免版面跳動 */
+  .back-btn.invisible { visibility:hidden; }
+  .cont-btn { font-size:14px; font-weight:900; background:var(--navy); color:white; border:none; padding:12px 28px; cursor:pointer; transition:all 0.2s; line-height:1; }
+  .cont-btn:hover:not(:disabled) { background:var(--blue); }
+  .cont-btn:disabled { background:var(--border); color:var(--muted); cursor:not-allowed; }
+
+  /* ===== RESULT ===== */
+  #result { min-height:100vh; background:var(--bg); }
+
+  .result-banner {
+    background: var(--navy);
+    padding: 16px 60px;
+    color: white;
+  }
+  .result-eyebrow { font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.7); }
+  .result-h1 { font-size:clamp(22px,3vw,34px); font-weight:900; line-height:1.3; color:var(--navy); }
+  .tier-badge { display:inline-block; font-size:13px; font-weight:900; padding:6px 16px; }
+  .tier-A { background:#2D6A4F; color:white; }
+  .tier-B { background:#B8711A; color:white; }
+  .tier-C { background:#555; color:white; }
+
+  .result-body { max-width:880px; margin:0 auto; padding:48px 60px; display:grid; gap:28px; }
+
+  .card { background:var(--white); border:1px solid var(--border); padding:32px; }
+  .card-label { font-size:11px; font-weight:900; letter-spacing:3px; text-transform:uppercase; color:var(--orange); margin-bottom:22px; }
+
+  .radar-inner { display:flex; gap:44px; align-items:flex-start; flex-wrap:wrap; }
+  .dims-wrap { flex:1; min-width:200px; }
+  .dim-row { margin-bottom:18px; }
+  .dim-head { display:flex; justify-content:space-between; margin-bottom:7px; }
+  .dim-name { font-size:14px; font-weight:900; color:var(--navy); }
+  .dim-pct { font-size:13px; font-weight:900; color:var(--orange); }
+  .dim-track { height:4px; background:var(--border); border-radius:2px; }
+  .dim-fill { height:100%; border-radius:2px; background:var(--navy); transition:width 1s cubic-bezier(.4,0,.2,1); }
+
+  .text-card { background:var(--white); border:1px solid var(--border); border-left:4px solid var(--navy); padding:32px; }
+  .text-card p { font-size:15px; line-height:1.9; color:var(--muted); margin-bottom:14px; font-weight:400; }
+  .text-card p:last-child { margin-bottom:0; }
+
+  .prompt-card { background:#EEF2FA; border:1px solid #C8D5EE; padding:32px; }
+  .prompt-card h3 { font-size:17px; font-weight:900; color:var(--navy); margin-bottom:8px; }
+  .prompt-card > p { font-size:14px; color:var(--muted); margin-bottom:18px; line-height:1.75; font-weight:400; }
+  .prompt-q { display:flex; gap:12px; margin-bottom:10px; font-size:14px; color:var(--text); line-height:1.65; font-weight:400; }
+  .prompt-n { font-size:12px; font-weight:900; color:var(--orange); min-width:22px; margin-top:2px; }
+
+  .cta-row { display:flex; gap:12px; flex-wrap:wrap; }
+  .cta-primary { display:inline-flex; align-items:center; gap:10px; background:var(--orange); color:white; padding:15px 34px; font-size:16px; font-weight:700; border:none; cursor:pointer; transition:all 0.2s; text-decoration:none; }
+  .cta-primary:hover { background:var(--orange-light); transform:translateY(-2px); box-shadow:0 8px 24px rgba(212,130,26,0.3); }
+
+  @media (max-width:820px) {
+    .landing-hero { grid-template-columns:1fr; }
+    .hero-left, .hero-right { padding:48px 24px; }
+    .about-body, .quiz-body, .result-body { padding:36px 20px; }
+    .quiz-header, .result-banner, .about-hero { padding:36px 20px; }
+    .tracks-grid, .alumni-grid, .stats-row { grid-template-columns:1fr; gap:2px; }
+    .meta-grid { grid-template-columns:1fr; }
+    .topbar { padding:0 16px; }
+    .radar-inner { flex-direction:column; }
+  }
 </style>
 </head>
 <body>
-<div class="app">
-<h1>差勤管理系統</h1>
-<div class="tabs">
-  <button class="tb on" onclick="showPg('schedule',this)">月份時間表</button>
-  <button class="tb" onclick="showPg('summary',this)">差勤總表</button>
-  <button class="tb" onclick="showPg('help',this)">使用說明</button>
-  <span id="sync-status" style="margin-left:auto;font-size:12px;color:#1a7a50;padding:10px 4px;transition:opacity 1s;opacity:0"></span>
-</div>
-<div class="pg on" id="pg-schedule">
-  <div class="topbar">
-    <label>月份</label>
-    <select id="sm" onchange="render()"></select>
-    <select id="sy" onchange="render()"></select>
-    <button class="bsm" onclick="openEmpModal()">＋ 新增員工</button>
-    <button class="bsm" id="lock-btn" onclick="toggleLock()" style="margin-left:4px"></button>
-    <span id="lock-notice" style="font-size:12px;color:#b87010;display:none">📋 本月已鎖定，僅供檢視</span>
+
+<nav class="topbar">
+  <div class="logo-wrap">
+    <span class="logo-en">SAVEANNE EDUCATION</span>
+    <span class="logo-zh">安妮怎麼了？</span>
   </div>
-  <div class="topbar" style="margin-top:-6px;margin-bottom:10px">
-    <div class="legend">
-      <div class="leg"><div class="leg-dot" style="background:#fff;border:1px solid #ddd"></div>平日</div>
-      <div class="leg"><div class="leg-dot" style="background:#ffeae0"></div>假日／週末</div>
-      <div class="leg"><div class="leg-dot" style="background:#ddeeff"></div>今天</div>
-      <span class="tip" style="margin-left:8px">時間格式：HH:MM 或 HHMM（如 18:30 或 1830）；平日預設 10:00–19:00；假日空白；↑↓ 以 0.5h 調整</span>
-    </div>
+  <div class="topbar-nav">
+    <a href="https://www.anne.education/internship.html" target="_blank">關於計畫</a>
+    <button class="nav-cta" onclick="startQuiz()">開始測驗</button>
   </div>
-  <div class="sw"><table class="st" id="stbl"></table></div>
-</div>
-<div class="pg" id="pg-summary">
-  <div class="topbar">
-    <label>月份</label>
-    <select id="sm2" onchange="renderSum()"></select>
-    <select id="sy2" onchange="renderSum()"></select>
-  </div>
-  <div class="stitle" style="margin-bottom:6px">員工差勤明細</div>
-  <div class="hint">補休增減：平日＝淨工時−8h；假日/週末有打卡＝淨工時全計補休；全日「補休」假＝−8h。<br>特休用完後不可再選；上課假達到每月上限後不可再選。重置後天數及餘額依重置日切割計算。</div>
-  <div class="tw"><table class="dt" id="dtbl"></table></div>
-  <div class="anno-box" id="anno-box"></div>
-</div>
-<!-- HELP PAGE -->
-<div class="pg" id="pg-help">
-  <div class="help-wrap">
-    <div class="help-section">
-      <div class="help-title">月份時間表</div>
-      <div class="help-sub">基本操作</div>
-      <p class="help-p">選擇年份和月份後，表格會顯示該月每一天。每個格子由上到下分為：假別選單、上班時間、下班時間、休息時間、補休標籤。</p>
-      <div class="help-sub">假別說明</div>
-      <div class="help-table">
-        <div class="ht-row"><span class="bx b特休">特休</span><span>全日休假，時間欄位自動鎖定。用完後選項變灰無法選取。</span></div>
-        <div class="ht-row"><span class="bx b病假">病假</span><span>可全日（不填時間，計 8 小時）或半日（填入時間，依實際計算）。</span></div>
-        <div class="ht-row"><span class="bx b事假">事假</span><span>可全日（不填時間，計 8 小時）或半日（填入時間，依實際計算）。</span></div>
-        <div class="ht-row"><span class="bx b補休">補休</span><span>使用補休假，扣除 8 小時補休餘額。</span></div>
-        <div class="ht-row"><span class="bx b上課假">上課假</span><span>每月有上限，達到上限後選項變灰無法選取。</span></div>
+</nav>
+
+<!-- LANDING -->
+<section id="landing" class="active">
+  <div class="landing-hero">
+    <div class="hero-left">
+      <div class="ecg-deco">
+        <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+          <path class="ecg-path" d="M0,30 L100,30 L115,30 L125,5 L140,55 L155,15 L170,40 L185,30 L300,30 L315,30 L325,5 L340,55 L355,15 L370,40 L385,30 L500,30 L515,30 L525,5 L540,55 L555,15 L570,40 L585,30 L600,30"/>
+        </svg>
       </div>
-      <div class="help-sub">時間輸入</div>
-      <ul class="help-list">
-        <li>支援格式：<code>10:00</code>、<code>1000</code>、<code>1030</code></li>
-        <li>平日預設：上班 10:00、下班 19:00、休息 01:00</li>
-        <li>鍵盤 ↑↓ 可以 30 分鐘為單位調整，游標點入欄位後使用</li>
-        <li>假日與週末欄位預設空白</li>
-      </ul>
-      <div class="help-sub">補休計算規則</div>
-      <ul class="help-list">
-        <li>平日：實際工時（下班 − 上班 − 休息）− 8 小時</li>
-        <li>假日／週末有填時間：實際工時全數計入補休</li>
-        <li>全日補休假：扣除 8 小時</li>
-        <li>選擇病假時補休增減為 ±0，不論是否有填時間</li>
-      </ul>
-      <div class="help-sub">顏色說明</div>
-      <ul class="help-list">
-        <li><span class="help-color" style="background:#fff;border:1px solid #ddd"></span>白底：平日</li>
-        <li><span class="help-color" style="background:#ffeae0"></span>淡桃底：假日／週末</li>
-        <li><span class="help-color" style="background:#ddeeff"></span>淡藍底：今天</li>
-      </ul>
+      <div class="hero-eyebrow">暑期實習生計畫 2025</div>
+      <h1 class="hero-title">你是哪種<br><em>急救思考者？</em></h1>
+      <p class="hero-desc">6 個情境題，測試你的系統視角、教育轉譯能力、實證思維與成長耐受度——看看你是否適合加入台灣唯一的救護醫療教育研發單位。</p>
+      <button class="hero-btn" onclick="startQuiz()">開始適配測驗 →</button>
     </div>
-    <div class="help-section">
-      <div class="help-title">差勤總表</div>
-      <p class="help-p">顯示每位員工當月的請假與補休統計，分為請假、特休、補休三個區塊。</p>
-      <div class="help-sub">請假區塊</div>
-      <ul class="help-list">
-        <li>病假以小時計算（全日 = 8 小時）</li>
-        <li>事假以天計算</li>
-        <li>上課假顯示「已用 / 上限」</li>
-      </ul>
-      <div class="help-sub">特休區塊</div>
-      <ul class="help-list">
-        <li>顯示「已用 / 總天數」</li>
-        <li>總天數依到職年資自動計算：<br>滿 6 個月 3 天、滿 1 年 7 天、滿 2 年 10 天、滿 3 年 14 天、滿 5 年 15 天、滿 10 年起每年 +1 天，上限 30 天</li>
-        <li>重置日：首次為到職後第 6 個月，之後每年到職週年日重置</li>
-      </ul>
-      <div class="help-sub">補休區塊</div>
-      <ul class="help-list">
-        <li>本月增減：當月加班或補休假的總時數變化</li>
-        <li>餘額：從上次補休重置日累積至今的補休時數</li>
-        <li>補休重置日為每年到職週年日，重置後餘額歸零</li>
-      </ul>
-      <div class="help-sub">本月重置通知</div>
-      <p class="help-p">若當月有員工的特休或補休到達重置日，表格下方會顯示通知，列出重置前的剩餘特休天數與補休時數。</p>
-    </div>
-    <div class="help-section">
-      <div class="help-title">員工管理</div>
-      <ul class="help-list">
-        <li>點擊員工名稱旁的 <b>✎</b> 可編輯員工資料</li>
-        <li>點擊 <b>✕</b> 可刪除員工（同時刪除該員工所有差勤記錄）</li>
-        <li>點擊頁面上方「＋ 新增員工」可新增</li>
-      </ul>
-      <div class="help-sub">欄位說明</div>
-      <div class="help-table">
-        <div class="ht-row"><span class="ht-label">到職日期</span><span>用於計算年資、特休天數及重置日</span></div>
-        <div class="ht-row"><span class="ht-label">上課假上限</span><span>每月可請上課假的天數上限</span></div>
-        <div class="ht-row"><span class="ht-label">補休餘額基數</span><span>系統建立前已累積的補休時數，僅在未達第一個補休重置日前有效</span></div>
+
+    <div class="hero-right">
+      <div>
+        <div class="section-mini-label">計畫基本資訊</div>
+        <div class="meta-grid">
+          <div class="meta-card"><div class="meta-label">實習時間</div><div class="meta-value">7月1日 — 8月14日</div></div>
+          <div class="meta-card"><div class="meta-label">地點</div><div class="meta-value">安妮實驗室</div></div>
+          <div class="meta-card"><div class="meta-label">薪資</div><div class="meta-value">NT$ 44,250（1.5月）</div></div>
+          <div class="meta-card"><div class="meta-label">招募名額</div><div class="meta-value">2 — 3 人</div></div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-</div><!-- end .app -->
-<div class="mbg" id="memp">
-  <div class="md">
-    <h3 id="memp-title">新增員工</h3>
-    <label>姓名</label><input type="text" id="e-name" placeholder="員工姓名"/>
-    <label>到職日期</label><input type="date" id="e-join"/>
-    <label>每月上課假上限（天）</label><input type="number" id="e-classmax" value="2" min="0" max="31"/>
-    <label>補休餘額基數（小時）</label><input type="number" id="e-compbal" value="0" step="0.5"/>
-    <div class="sub" id="e-compbal-hint"></div>
-    <div class="mbtns">
-      <button class="bcan" onclick="closeEmpModal()">取消</button>
-      <button class="bpri" id="e-save-btn" onclick="saveEmp()">新增</button>
-    </div>
-  </div>
-</div>
-<script>
-const DEFAULT_IN=10.0,DEFAULT_OUT=19.0,DEFAULT_BRK=1.0,STD=8,STEP=0.5;
-const LT=['','特休','病假','事假','補休','上課假'];
-const AVC=[['#ddeeff','#1a5a9a'],['#eeecff','#4a3899'],['#e8f5e2','#2a5e15'],['#fef0da','#7a4a0a'],['#fde8f2','#7a2060'],['#f0f0ee','#444']];
 
-const TW_CAL={
-  '2024-1-1':1,'2024-2-8':1,'2024-2-9':1,'2024-2-10':1,'2024-2-11':1,'2024-2-12':1,'2024-2-13':1,'2024-2-14':1,'2024-2-17':2,'2024-2-28':1,'2024-3-2':1,'2024-4-4':1,'2024-4-5':1,'2024-5-1':1,'2024-6-10':1,'2024-9-17':1,'2024-10-10':1,
-  '2025-1-1':1,'2025-1-27':1,'2025-1-28':1,'2025-1-29':1,'2025-1-30':1,'2025-1-31':1,'2025-2-1':1,'2025-2-4':2,'2025-2-28':1,'2025-4-3':1,'2025-4-4':1,'2025-4-5':1,'2025-5-1':1,'2025-5-29':1,'2025-5-30':1,'2025-5-31':1,'2025-6-1':2,'2025-9-27':1,'2025-10-2':1,'2025-10-4':2,'2025-10-6':1,'2025-10-10':1,
-  '2026-1-1':1,'2026-2-14':1,'2026-2-15':1,'2026-2-16':1,'2026-2-17':1,'2026-2-18':1,'2026-2-19':1,'2026-2-20':1,'2026-2-21':1,'2026-2-22':1,'2026-2-27':1,'2026-2-28':1,'2026-3-1':1,'2026-4-3':1,'2026-4-4':1,'2026-4-5':1,'2026-4-6':1,'2026-5-1':1,'2026-5-2':1,'2026-5-3':1,'2026-6-19':1,'2026-6-20':1,'2026-6-21':1,'2026-9-25':1,'2026-9-26':1,'2026-9-27':1,'2026-9-28':1,'2026-10-9':1,'2026-10-10':1,'2026-10-11':1,'2026-10-24':1,'2026-10-25':1,'2026-10-26':1,'2026-12-25':1,'2026-12-26':1,'2026-12-27':1
-};
-
-function ck(y,m,d){return `${y}-${m+1}-${d}`;}
-function calVal(y,m,d){return TW_CAL[ck(y,m,d)]||0;}
-function isWE(y,m,d){const w=new Date(y,m,d).getDay();return w===0||w===6;}
-function isOff(y,m,d){const v=calVal(y,m,d);if(v===2)return false;if(v===1)return true;return isWE(y,m,d);}
-function dim(y,m){return new Date(y,m+1,0).getDate();}
-function getDOW(y,m,d){return new Date(y,m,d).getDay();}
-
-function fmtH(h){
-  if(h===null||h===undefined||h==='') return '';
-  const hh=Math.floor(h),mm=Math.round((h-hh)*60);
-  return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
-}
-function parseH(s){
-  if(s===null||s===undefined||String(s).trim()==='') return null;
-  s=String(s).trim().replace(/\s/g,'');
-  let h,m=0;
-  if(s.includes(':')){const pts=s.split(':');h=parseInt(pts[0],10)||0;m=parseInt(pts[1],10)||0;}
-  else if(s.length===4&&/^\d{4}$/.test(s)){h=parseInt(s.slice(0,2),10);m=parseInt(s.slice(2),10);}
-  else if(s.length===3&&/^\d{3}$/.test(s)){h=parseInt(s.slice(0,1),10);m=parseInt(s.slice(1),10);}
-  else{const f=parseFloat(s);if(isNaN(f))return null;h=Math.floor(f);m=Math.round((f-h)*60);}
-  if(isNaN(h)||isNaN(m)) return null;
-  return Math.round((h+m/60)/STEP)*STEP;
-}
-
-function svcMonths(joinDate,ref){
-  const j=new Date(joinDate),r=new Date(ref);
-  const mos=(r.getFullYear()-j.getFullYear())*12+(r.getMonth()-j.getMonth());
-  return r.getDate()>=j.getDate()?mos:mos-1;
-}
-function annualDaysByMonths(mos){
-  if(mos<6) return 0;
-  if(mos<12) return 3;
-  const y=Math.floor(mos/12);
-  if(y<2) return 7;
-  if(y<3) return 10;
-  if(y<5) return 14;
-  if(y<10) return 15;
-  return Math.min(15+(y-10)+1,30);
-}
-function annualDays(emp,refDate){return annualDaysByMonths(svcMonths(emp.joinDate,refDate));}
-
-function annResetDates(joinDate){
-  const j=new Date(joinDate),resets=[];
-  resets.push(new Date(j.getFullYear(),j.getMonth()+6,j.getDate()));
-  for(let yr=1;yr<=50;yr++) resets.push(new Date(j.getFullYear()+yr,j.getMonth(),j.getDate()));
-  return resets;
-}
-function getResetInfo(emp,today){
-  const resets=annResetDates(emp.joinDate);
-  let lastReset=null,nextReset=null;
-  for(let i=0;i<resets.length;i++){
-    if(resets[i]<=today) lastReset=resets[i];
-    else{nextReset=resets[i];break;}
-  }
-  return {lastReset,nextReset};
-}
-function compResetDates(joinDate){
-  const j=new Date(joinDate),resets=[];
-  for(let yr=1;yr<=50;yr++) resets.push(new Date(j.getFullYear()+yr,j.getMonth(),j.getDate()));
-  return resets;
-}
-function getCompResetInfo(emp,today){
-  const resets=compResetDates(emp.joinDate);
-  let lastReset=null,nextReset=null;
-  for(let i=0;i<resets.length;i++){
-    if(resets[i]<=today) lastReset=resets[i];
-    else{nextReset=resets[i];break;}
-  }
-  return {lastReset,nextReset};
-}
-function fmtDateFull(d){if(!d) return '—';return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;}
-
-let emps=[],att={},nid=1,editEmpId=null;
-function K(e,y,m,d){return `${e}-${y}-${m}-${d}`;}
-
-// ── Lock management ──
-function lockKey(y,m){return `lock-${y}-${m}`;}
-function isMonthPast(y,m){
-  const now=new Date();
-  return y<now.getFullYear()||(y===now.getFullYear()&&m<now.getMonth());
-}
-function isLocked(y,m){
-  const k=lockKey(y,m);
-  const stored=localStorage.getItem(k);
-  if(stored!==null) return stored==='1'; // manual override
-  return isMonthPast(y,m); // default: past months locked
-}
-function toggleLock(){
-  const {y,m}=getYM(1);
-  const k=lockKey(y,m);
-  const current=isLocked(y,m);
-  localStorage.setItem(k,current?'0':'1');
-  render();
-}
-function updateLockUI(y,m){
-  const locked=isLocked(y,m);
-  const isPast=isMonthPast(y,m);
-  const btn=document.getElementById('lock-btn');
-  const notice=document.getElementById('lock-notice');
-  if(btn){
-    btn.style.display=isPast?'inline':'none';
-    btn.textContent=locked?'🔓 解鎖本月':'🔒 鎖定本月';
-    btn.style.color=locked?'#b87010':'#555';
-  }
-  if(notice) notice.style.display=(isPast&&locked)?'inline':'none';
-}
-
-// Calculate sick leave hours for a day
-function daySickHours(eid,y,m,d){
-  const rec=att[K(eid,y,m,d)]||{};
-  if((rec.leave||'')!=='病假') return 0;
-  const hasTime=(rec.inH!=null||rec.outH!=null);
-  if(!hasTime) return STD; // full day = 8h
-  const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
-  const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
-  if(outH<=inH) return 0;
-  const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;
-  const workedH=Math.max(0,outH-inH-brk);
-  return +Math.max(0,STD-workedH).toFixed(1); // sick = 8 - worked
-}
-function monthSickHours(eid,y,m){
-  let total=0;
-  for(let d=1;d<=dim(y,m);d++) total+=daySickHours(eid,y,m,d);
-  return +total.toFixed(1);
-}
-
-// Calculate personal leave hours for a day (same logic as sick leave)
-function dayPersonalHours(eid,y,m,d){
-  const rec=att[K(eid,y,m,d)]||{};
-  if((rec.leave||'')!=='事假') return 0;
-  const hasTime=(rec.inH!=null||rec.outH!=null);
-  if(!hasTime) return STD; // full day = 8h
-  const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
-  const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
-  if(outH<=inH) return 0;
-  const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;
-  const workedH=Math.max(0,outH-inH-brk);
-  return +Math.max(0,STD-workedH).toFixed(1); // personal = 8 - worked
-}
-function monthPersonalHours(eid,y,m){
-  let total=0;
-  for(let d=1;d<=dim(y,m);d++) total+=dayPersonalHours(eid,y,m,d);
-  return +total.toFixed(1);
-}
-
-function dayComp(eid,y,m,d){
-  const rec=att[K(eid,y,m,d)]||{};
-  const leave=rec.leave||'',off=isOff(y,m,d);
-  if(!off){
-    if(leave==='補休') return -STD;
-    // 病假/事假：comp is always 0 regardless of time
-    if(['特休','病假','事假','上課假'].includes(leave)) return 0;
-  }
-  const hasTime=(rec.inH!=null||rec.outH!=null);
-  if(!hasTime) return 0;
-  const inH=rec.inH!=null?rec.inH:DEFAULT_IN,outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
-  if(outH<=inH) return 0;
-  const brk=rec.brk!=null?rec.brk:(off?0:DEFAULT_BRK);
-  const net=Math.max(0,outH-inH-brk);
-  if(off) return +net.toFixed(2);
-  return +(net-STD).toFixed(2);
-}
-
-function compInRange(eid,sy,sm,sd,ey,em,ed){
-  let total=0,cy=sy,cm=sm;
-  while(cy<ey||(cy===ey&&cm<=em)){
-    const days=dim(cy,cm),dStart=(cy===sy&&cm===sm)?sd:1,dEnd=(cy===ey&&cm===em)?ed:days;
-    for(let d=dStart;d<=dEnd;d++) total+=dayComp(eid,cy,cm,d);
-    cm++;if(cm>11){cm=0;cy++;}
-  }
-  return +total.toFixed(1);
-}
-
-function countLInRange(eid,sy,sm,sd,ey,em,ed,type){
-  let count=0,cy=sy,cm=sm;
-  while(cy<ey||(cy===ey&&cm<=em)){
-    const days=dim(cy,cm),dStart=(cy===sy&&cm===sm)?sd:1,dEnd=(cy===ey&&cm===em)?ed:days;
-    for(let d=dStart;d<=dEnd;d++){const r=att[K(eid,cy,cm,d)]||{};if((r.leave||'')===type)count++;}
-    cm++;if(cm>11){cm=0;cy++;}
-  }
-  return count;
-}
-function countL(eid,y,m,type){
-  let c=0;for(let d=1;d<=dim(y,m);d++){const r=att[K(eid,y,m,d)]||{};if((r.leave||'')===type)c++;}return c;
-}
-
-function annLeaveState(emp,periodEnd){
-  const allResets=annResetDates(emp.joinDate);
-  let lastReset=null,nextReset=null;
-  for(let i=0;i<allResets.length;i++){
-    if(allResets[i]<=periodEnd) lastReset=allResets[i];
-    else{nextReset=allResets[i];break;}
-  }
-  if(!lastReset) return {totalDays:0,usedDays:0,remainDays:0,nextReset};
-  const totalDays=annualDaysByMonths(svcMonths(emp.joinDate,lastReset));
-  const usedDays=countLInRange(emp.id,lastReset.getFullYear(),lastReset.getMonth(),lastReset.getDate(),periodEnd.getFullYear(),periodEnd.getMonth(),periodEnd.getDate(),'特休');
-  return {totalDays,usedDays,remainDays:Math.max(0,totalDays-usedDays),nextReset};
-}
-
-function compBalState(emp,periodEnd){
-  const allCompResets=compResetDates(emp.joinDate);
-  let lastReset=null,nextReset=null;
-  for(let i=0;i<allCompResets.length;i++){
-    if(allCompResets[i]<=periodEnd) lastReset=allCompResets[i];
-    else{nextReset=allCompResets[i];break;}
-  }
-  let bal;
-  if(!lastReset){
-    const j=new Date(emp.joinDate);
-    bal=+(emp.compBal+compInRange(emp.id,j.getFullYear(),j.getMonth(),j.getDate(),periodEnd.getFullYear(),periodEnd.getMonth(),periodEnd.getDate())).toFixed(1);
-  } else {
-    bal=compInRange(emp.id,lastReset.getFullYear(),lastReset.getMonth(),lastReset.getDate(),periodEnd.getFullYear(),periodEnd.getMonth(),periodEnd.getDate());
-  }
-  return {bal:+bal.toFixed(1),nextReset};
-}
-
-function countLMonth(eid,y,m,type){return countL(eid,y,m,type);}
-
-function initSel(){
-  const now=new Date(),cy=now.getFullYear(),cm=now.getMonth();
-  const ML=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-  ['sm','sm2'].forEach(id=>{
-    const s=document.getElementById(id);
-    s.innerHTML=ML.map((l,i)=>`<option value="${i}"${i===cm?' selected':''}>${l}</option>`).join('');
-  });
-  ['sy','sy2'].forEach(id=>{
-    const s=document.getElementById(id);s.innerHTML='';
-    for(let y=cy-2;y<=cy+2;y++){
-      const o=document.createElement('option');o.value=y;o.textContent=y+'年';if(y===cy)o.selected=true;s.appendChild(o);
-    }
-  });
-}
-function getYM(n){
-  return n===1?{y:+document.getElementById('sy').value,m:+document.getElementById('sm').value}:{y:+document.getElementById('sy2').value,m:+document.getElementById('sm2').value};
-}
-
-function render(){
-  const {y,m}=getYM(1),days=dim(y,m),now=new Date();
-  const locked=isLocked(y,m);
-  updateLockUI(y,m);
-  const tbl=document.getElementById('stbl');
-  // Use monthEnd so special leave entered anywhere in the month is counted
-  const monthEnd=new Date(y,m+1,0);
-  const state={};
-  emps.forEach(e=>{
-    const {remainDays:annRemain,totalDays:annTotal,usedDays:annUsed}=annLeaveState(e,monthEnd);
-    const {bal:compBal}=compBalState(e,monthEnd);
-    const classUsed=countL(e.id,y,m,'上課假');
-    state[e.id]={annRemain,annTotal,annUsed,compBal,classUsed};
-  });
-  const COL_NAME=130,COL_DAY=80,COL_SUM=200;
-  const totalW=COL_NAME+days*COL_DAY+COL_SUM;
-  let h=`<colgroup><col style="width:${COL_NAME}px">`;
-  for(let d=1;d<=days;d++) h+=`<col style="width:${COL_DAY}px">`;
-  h+=`<col style="width:${COL_SUM}px"></colgroup>`;
-  h+='<thead><tr><th class="nc">員工</th>';
-  for(let d=1;d<=days;d++){
-    const w=getDOW(y,m,d),off=isOff(y,m,d),td=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
-    const cls=(off?'offday':'')+(td?(off?' tdy':'tdy'):'');
-    h+=`<th class="${cls}">${d}<br><span style="font-size:9px;font-weight:400">${['日','一','二','三','四','五','六'][w]}</span></th>`;
-  }
-  h+='<th class="mc">月計</th></tr></thead>';
-  let b='<tbody>';
-  emps.forEach((emp,ei)=>{
-    const ac=AVC[ei%AVC.length];
-    const {annRemain,annTotal,compBal,classUsed}=state[emp.id];
-    const annExhausted=annTotal>0&&annRemain<=0;
-    let lc={};LT.slice(1).forEach(t=>lc[t]=0);
-    let mCompTotal=0;
-    let row=`<tr><td class="ncc" style="text-align:center">
-      <span class="av" style="background:${ac[0]};color:${ac[1]}">${emp.name[0]}</span>${emp.name}
-      <span class="eb" onclick="openEmpModal(${emp.id})" title="編輯">✎</span>
-      <span class="db" onclick="delEmp(${emp.id})" title="刪除">✕</span>
-    </td>`;
-    for(let d=1;d<=days;d++){
-      const off=isOff(y,m,d),td=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
-      const k=K(emp.id,y,m,d),rec=att[k]||{};
-      const leave=rec.leave||'';
-      const storedIn=rec.inH!=null?rec.inH:null,storedOut=rec.outH!=null?rec.outH:null,storedBrk=rec.brk!=null?rec.brk:null;
-      if(leave) lc[leave]=(lc[leave]||0)+1;
-      const comp=dayComp(emp.id,y,m,d);
-      mCompTotal+=comp;
-      const cellCls=(off?'offday':'')+(td?(off?' tdy':'tdy'):'');
-      const isFullDay=FULL_LEAVES.includes(leave);
-      const isSick=leave==='病假';
-      // placeholder: blank for offday, full-day leave, or sick leave (since time is optional)
-      const phIn=(off||isFullDay)?'':fmtH(DEFAULT_IN);
-      const phOut=(off||isFullDay)?'':fmtH(DEFAULT_OUT);
-      const phBrk=(off||isFullDay)?'':fmtH(DEFAULT_BRK);
-      let opts=LT.map(lt=>{
-        let dis=false;
-        if(lt==='上課假'&&lt!==leave&&classUsed>=emp.classMax) dis=true;
-        if(lt==='特休'&&lt!==leave&&annExhausted) dis=true;
-        return `<option value="${lt}"${leave===lt?' selected':''}${dis?' disabled':''} style="${dis?'color:#ccc':''}">${lt||'—'}</option>`;
-      }).join('');
-      let ctag='';
-      const cr=+comp.toFixed(1);
-      if(cr>0) ctag=`<span class="comp-tag cp">+${cr}h</span>`;
-      else if(cr<0) ctag=`<span class="comp-tag cn">${cr}h</span>`;
-      else if(storedIn!==null||storedOut!==null) ctag=`<span class="comp-tag cz">±0h</span>`;
-      row+=`<td class="${cellCls}"><div class="dc">
-        <select class="lv-sel" ${locked?'disabled style="background:#f4f4f2;color:#aaa"':''} onchange="setLeave(${emp.id},${y},${m},${d},this.value)">${opts}</select>
-        <div class="time-stack">
-          <div class="time-field">
-            <span class="time-lbl">上</span>
-            <input class="ti${storedIn!==null?' has-val':''}" type="text" maxlength="5"
-              placeholder="${phIn}" value="${storedIn!==null?fmtH(storedIn):''}"
-              ${(isFullDay||locked)?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
-              onblur="setTime(${emp.id},${y},${m},${d},'in',this.value)"
-              onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'in')">
-          </div>
-          <div class="time-field">
-            <span class="time-lbl">下</span>
-            <input class="ti${storedOut!==null?' has-val':''}" type="text" maxlength="5"
-              placeholder="${phOut}" value="${storedOut!==null?fmtH(storedOut):''}"
-              ${(isFullDay||locked)?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
-              onblur="setTime(${emp.id},${y},${m},${d},'out',this.value)"
-              onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'out')">
-          </div>
-          <div class="time-field">
-            <span class="time-lbl" style="color:#e0a060">休</span>
-            <input class="ti${storedBrk!==null?' has-val':''}" type="text" maxlength="5"
-              placeholder="${phBrk}" value="${storedBrk!==null?fmtH(storedBrk):''}"
-              ${(isFullDay||locked)?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
-              onblur="setBreak(${emp.id},${y},${m},${d},this.value)"
-              onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'brk')">
+      <div class="tracks-preview">
+        <div class="section-mini-label">四大實習軌道</div>
+        <div class="track-mini">
+          <div>
+            <div class="track-mini-name">救護醫療探索</div>
+            <div class="track-mini-desc">隨民間救護車執行二次轉診任務，並參訪 119 派遣中心，親眼看見救護車如何在有限資源下完成車輛調度，了解系統如何真實運轉。</div>
           </div>
         </div>
-        ${ctag}
-      </div></td>`;
-    }
-    let parts=[];
-    const sickH=monthSickHours(emp.id,y,m);
-    if(sickH>0) parts.push(`<span class="bx b病假">病假 ${sickH}h</span>`);
-    const personalH=monthPersonalHours(emp.id,y,m);
-    if(personalH>0) parts.push(`<span class="bx b事假">事假 ${personalH}h</span>`);
-    ['特休','補休','上課假'].forEach(t=>{if(lc[t]>0)parts.push(`<span class="bx b${t}">${t} ${lc[t]}天</span>`);});
-    const mc=+mCompTotal.toFixed(1);
-    if(mc>0) parts.push(`<span class="bx" style="background:#e2f5e8;color:#1a6a35">補休+${mc}h</span>`);
-    else if(mc<0) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">補休${mc}h</span>`);
-    if(classUsed>=emp.classMax&&emp.classMax>0) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">上課假達上限</span>`);
-    if(annExhausted) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">特休已用完</span>`);
-    // Check consecutive 7-day work warning
-    const prevDays=6;
-    let streak=0, streakStart=null, warnings=[];
-    const checkDays=[];
-    const prevM=m===0?11:m-1, prevY=m===0?y-1:y;
-    const prevTotal=dim(prevY,prevM);
-    for(let d=prevTotal-prevDays+1;d<=prevTotal;d++) checkDays.push({y:prevY,m:prevM,d});
-    for(let d=1;d<=days;d++) checkDays.push({y,m,d});
+        <div class="track-mini">
+          <div>
+            <div class="track-mini-name">救護教育實作</div>
+            <div class="track-mini-desc">參加指導員工作坊，習得科學化的教學方法，並實際擔任 CPR 與 AED 課程的教學者，累積三堂以上的真實教課經驗。</div>
+          </div>
+        </div>
+        <div class="track-mini">
+          <div>
+            <div class="track-mini-name">衛教影片開發</div>
+            <div class="track-mini-desc">從查找實證文獻開始，逐步完成報告、腳本撰寫、資訊視覺化，直到拍攝剪輯，以小組為單位產出一支完整的 YouTube Shorts 衛教影片。</div>
+          </div>
+        </div>
+        <div class="track-mini">
+          <div>
+            <div class="track-mini-name">倡議專案企劃</div>
+            <div class="track-mini-desc">製作社群圖文貼文，分享急救醫療的公共知識；並參與每年 9 月世界急救日的「閃電 CPR 挑戰」，協助將一般民眾引入急救教育系統。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    const flushStreak=(endDay)=>{
-      if(streak>=7&&endDay){
-        // Only warn if streak overlaps with current month
-        const endInMonth=(endDay.y===y&&endDay.m===m);
-        const startInMonth=(streakStart.y===y&&streakStart.m===m);
-        if(endInMonth||startInMonth){
-          const startStr=`${streakStart.m+1}/${streakStart.d}`;
-          const endStr=`${endDay.m+1}/${endDay.d}`;
-          warnings.push(`⚠ 連續上班 ${streak} 天（${startStr}–${endStr}）`);
-        }
-      }
-      streak=0; streakStart=null;
-    };
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-hero">
+    <h2>救護醫療<em>教育研發</em>，<br>不只是急救。</h2>
+    <p>「安妮怎麼了」是台灣唯一的救護醫療教育研發單位，角色像這個領域的出版社——推動教育系統、開發教學材料、升級整個救護醫療的知識生態。</p>
+  </div>
+  <div class="about-body">
+    <div class="section-label">四大實習軌道</div>
+    <div class="tracks-grid">
+      <div class="track-card"><span class="track-icon">🚑</span><div class="track-name">救護醫療探索</div><div class="track-desc">隨民間救護車執行二次轉診任務，並參訪 119 派遣中心，親眼看見救護車如何在有限資源下完成車輛調度。也將拜訪學術研究者與次領域專家，如野外救護、高救隊等，建立對整個救護醫療系統的完整認識。</div></div>
+      <div class="track-card"><span class="track-icon">🎓</span><div class="track-name">救護教育實作</div><div class="track-desc">參加指導員工作坊，學習刻意練習等行為科學教學理論，習得科學化的教學設計與回饋方法。並實際擔任 CPR 與 AED 課程的教學者，在真實學員面前累積三堂以上的教課經驗——好急救員不一定是好老師，教學是一門專業。</div></div>
+      <div class="track-card"><span class="track-icon">📹</span><div class="track-name">衛教影片開發</div><div class="track-desc">從查找學術資料庫的實證文獻開始，逐步完成口頭報告、腳本撰寫、動畫或圖表製作，直到實際拍攝與剪輯，以小組為單位產出一支完整的 YouTube Shorts 衛教影片，品質標準對標安妮對外發布的正式內容。</div></div>
+      <div class="track-card"><span class="track-icon">📣</span><div class="track-name">倡議專案企劃</div><div class="track-desc">製作社群圖文貼文，將急救醫療的專業知識轉譯給一般大眾；並參與每年 9 月世界急救日的「閃電 CPR 挑戰」籌備與執行，協助設計讓路過民眾願意停下來體驗急救的現場流程，把人流轉化為教育機會。</div></div>
+    </div>
+    <div class="section-label">計畫亮點</div>
+    <div class="stats-row">
+      <div class="stat-box"><span class="stat-num">100+</span><span class="stat-label">支急救教學影片</span></div>
+      <div class="stat-box"><span class="stat-num">3年</span><span class="stat-label">閃電CPR × 台北捷運</span></div>
+      <div class="stat-box"><span class="stat-num">國家級</span><span class="stat-label">衛福部委員會協作</span></div>
+    </div>
+    <div class="section-label">過來人怎麼說</div>
+    <div class="alumni-grid">
+      <div class="alumni-card"><div class="alumni-name">陳俊漢</div><div class="alumni-badge">第四屆 ｜ 陽明交通大學運物系 ｜ 急救社社長</div><div class="alumni-quote">「看到救護車見習不是去追刺激現場，而是去看一個系統——它讓我找到新的職業可能。」</div></div>
+      <div class="alumni-card"><div class="alumni-name">陳正廷</div><div class="alumni-badge">第二屆 ｜ 嘉南藥理大學藥學系 ｜ EMT-2</div><div class="alumni-quote">「這裡讓我找到人生方向。我把藥學、EMT、文獻閱讀連在一起，發表了研究，錄取成大臨藥所。」</div></div>
+    </div>
+    <button class="about-cta" onclick="startQuiz()">開始適配測驗 →</button>
+  </div>
+</section>
 
-    checkDays.forEach(({y:cy,m:cm,d:cd},idx)=>{
-      const off=isOff(cy,cm,cd);
-      const rec=att[K(emp.id,cy,cm,cd)]||{};
-      const leave=rec.leave||'';
-      const FULL=['特休','病假','事假','補休','上課假'];
-      let worked=false;
-      if(!off) worked=!FULL.includes(leave);
-      else worked=(rec.inH!=null||rec.outH!=null);
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="quiz-header">
+    <h2>你適合安妮暑期實習嗎？</h2>
+    <div>
+      <div class="progress-meta">
+        <span class="progress-label">進度</span>
+        <span class="progress-count" id="prog-count">1 / 6</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="quiz-body">
+    <div id="q-area"></div>
+    <div class="nav-row">
+      <button class="back-btn" id="back-btn" onclick="prevQ()">← 上一題</button>
+      <button class="cont-btn" id="cont-btn" onclick="nextQ()" disabled>繼續 →</button>
+    </div>
+  </div>
+</section>
 
-      if(worked){
-        if(streak===0) streakStart={y:cy,m:cm,d:cd};
-        streak++;
-      } else {
-        flushStreak(idx>0?checkDays[idx-1]:null);
-      }
-    });
-    // Flush last streak
-    flushStreak(checkDays[checkDays.length-1]);
+<!-- RESULT -->
+<section id="result">
+  <div class="result-banner" id="result-banner"></div>
+  <div class="result-body" id="result-body"></div>
+</section>
 
-    warnings.forEach(w=>{
-      parts.push(`<span class="bx" style="background:#fff0cc;color:#7a5000;border:1px solid #e8c840">${w}</span>`);
-    });
-    row+=`<td class="mcc">${parts.join(' ')||'<span style="font-size:11px;color:#bbb">—</span>'}</td></tr>`;
-    b+=row;
-  });
-  b+='</tbody>';
-  tbl.style.width=totalW+'px';
-  tbl.innerHTML=h+b;
+<script>
+const questions = [
+  { tag:"系統視角", text:"如果你跟著救護車見習，一天下來沒有遇到重大案件，你會比較在意什麼？", options:[
+    {l:"A",t:"有點可惜，因為我最想看到刺激的現場"},
+    {l:"B",t:"想知道今天每一趟派車背後，系統是怎麼判斷與調度的"},
+    {l:"C",t:"想整理今天看到的流程，思考哪些地方可以讓新手更容易理解"},
+    {l:"D",t:"想問學長姐，哪些狀況其實最容易被外界誤解"}
+  ]},
+  { tag:"成長耐受度", text:"你做了一支衛教短影音，第一次被退稿，你比較可能怎麼想？", options:[
+    {l:"A",t:"是不是要求太高了？短影音不用做到這麼細吧"},
+    {l:"B",t:"我想知道是哪裡不夠精準，證據、受眾還是表達方式出了問題"},
+    {l:"C",t:"我會先把架構重拆，再確認每一句話有沒有服務目標"},
+    {l:"D",t:"我可能會有點挫折，但願意再做一版看看"}
+  ]},
+  { tag:"教育轉譯", text:"你覺得「會急救」和「會教急救」最大的差別是什麼？", options:[
+    {l:"A",t:"會急救比較重要，教學就是把自己會的講出來"},
+    {l:"B",t:"會教急救需要把技能拆解，讓不同程度的人都能練起來"},
+    {l:"C",t:"會教急救需要理解學習者為什麼不敢做、不會做"},
+    {l:"D",t:"會教急救要能設計練習、觀察錯誤，並給出有效回饋"}
+  ]},
+  { tag:"實證思維", text:"當你遇到一個急救爭議問題，例如「衛生棉可不可以止血」，你會怎麼處理？", options:[
+    {l:"A",t:"先看網路上最多人怎麼說"},
+    {l:"B",t:"先想它的使用情境，再找資料判斷能處理到什麼程度"},
+    {l:"C",t:"找文獻、看吸收量、感染風險、應用案例，再整理成大眾聽得懂的答案"},
+    {l:"D",t:"問有經驗的人怎麼做，因為現場經驗最重要"}
+  ]},
+  { tag:"系統視角", text:"如果你參與一場大型急救倡議活動，現場很多人只是路過，你覺得最重要的是什麼？", options:[
+    {l:"A",t:"讓活動看起來熱鬧，吸引大家停下來"},
+    {l:"B",t:"讓第一次接觸急救的人，願意跨出第一步"},
+    {l:"C",t:"把人流轉化成學習機會，讓他們進入教育系統"},
+    {l:"D",t:"設計一個簡單但有效的體驗，讓人感覺「我也做得到」"}
+  ]},
+  { tag:"成長耐受度", text:"如果你在實習中有一個任務做不好，你最希望主管怎麼對你？", options:[
+    {l:"A",t:"給我明確答案，我照做就好"},
+    {l:"B",t:"直接指出問題，讓我知道標準在哪裡"},
+    {l:"C",t:"問我為什麼這樣做，再一起拆解問題"},
+    {l:"D",t:"給我空間重做，但標準不要降低"}
+  ]}
+];
+
+// ── 計分規則 ──
+// 系統視角: Q1(A=1,C=2,B/D=3) + Q5(A/D=2,B/C=3) → 平均
+// 成長耐受度: Q2(A=1,D=2,B/C=3) + Q6(A/B=1,D=2,C=3) → 平均
+// 教育轉譯: Q3(A=1,B=2,C/D=3)
+// 實證思維: Q4(A/D=1,B=2,C=3)
+// 總分最高12，最低4
+// ≥10 → A高度適合, 9 → B適合, <9 → C潛力型
+
+function calcScores(answers) {
+  // Q1 sys score
+  const q1 = answers[0]; // 0=A,1=B,2=C,3=D
+  const sysQ1 = q1===0 ? 1 : q1===2 ? 2 : 3; // A=1,C=2,B/D=3
+
+  // Q5 sys score
+  const q5 = answers[4];
+  const sysQ5 = (q5===0||q5===3) ? 2 : 3; // A/D=2, B/C=3
+
+  const sys = (sysQ1 + sysQ5) / 2;
+
+  // Q2 grow score
+  const q2 = answers[1];
+  const growQ2 = q2===0 ? 1 : q2===3 ? 2 : 3; // A=1,D=2,B/C=3
+
+  // Q6 grow score
+  const q6 = answers[5];
+  const growQ6 = (q6===0||q6===1) ? 1 : q6===3 ? 2 : 3; // A/B=1,D=2,C=3
+
+  const grow = (growQ2 + growQ6) / 2;
+
+  // Q3 edu score
+  const q3 = answers[2];
+  const edu = q3===0 ? 1 : q3===1 ? 2 : 3; // A=1,B=2,C/D=3
+
+  // Q4 ev score
+  const q4 = answers[3];
+  const ev = (q4===0||q4===3) ? 1 : q4===1 ? 2 : 3; // A/D=1,B=2,C=3
+
+  const total = sys + grow + edu + ev;
+  return { sys, grow, edu, ev, total };
 }
 
-function timeKey(e,el,eid,y,m,d,which){
-  if(e.key!=='ArrowUp'&&e.key!=='ArrowDown') return;
-  e.preventDefault();
-  const k=K(eid,y,m,d),rec=att[k]||{},off=isOff(y,m,d);
-  const field=which==='in'?'inH':which==='out'?'outH':'brk';
-  const def=which==='in'?DEFAULT_IN:which==='out'?DEFAULT_OUT:(off?0:DEFAULT_BRK);
-  let cur=rec[field]!=null?rec[field]:(off&&which==='brk'?0:def);
-  let nv=Math.round((cur+(e.key==='ArrowUp'?STEP:-STEP))/STEP)*STEP;
-  nv=Math.max(0,Math.min(24,nv));
-  if(!att[k]) att[k]={};
-  att[k][field]=nv;
-  el.value=fmtH(nv);el.classList.add('has-val');
-  const comp=dayComp(eid,y,m,d),cell=el.closest('td'),existing=cell.querySelector('.comp-tag');
-  const cr=+comp.toFixed(1);
-  let tagHtml=cr>0?`<span class="comp-tag cp">+${cr}h</span>`:cr<0?`<span class="comp-tag cn">${cr}h</span>`:`<span class="comp-tag cz">±0h</span>`;
-  if(existing) existing.outerHTML=tagHtml;
-  else cell.querySelector('.dc').insertAdjacentHTML('beforeend',tagHtml);
-  el.focus();
-  apiSetAtt(k,att[k]);
+const dimNames = {sys:"系統視角", grow:"成長耐受度", edu:"教育轉譯", ev:"實證思維"};
+
+let cur=0, answers=new Array(questions.length).fill(null);
+
+function showSection(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
 }
 
-const FULL_LEAVES=['特休','補休','上課假'];
-function setLeave(eid,y,m,d,val){
-  if(isLocked(y,m)) return;
-  const k=K(eid,y,m,d);if(!att[k])att[k]={};
-  att[k].leave=val;
-  if(FULL_LEAVES.includes(val)){att[k].inH=null;att[k].outH=null;att[k].brk=null;}
-  render();
-  apiSetAtt(k,att[k]);
-}
-function setBreak(eid,y,m,d,val){
-  if(isLocked(y,m)) return;
-  const k=K(eid,y,m,d);if(!att[k])att[k]={};
-  att[k].brk=parseH(val);
-  apiSetAtt(k,att[k]);
-  render();
-}
-function setTime(eid,y,m,d,which,val){
-  if(isLocked(y,m)) return;
-  const k=K(eid,y,m,d);if(!att[k])att[k]={};
-  att[k][which==='in'?'inH':'outH']=parseH(val);
-  apiSetAtt(k,att[k]);
-  render();
-}
-function delEmp(id){
-  if(!confirm('確定刪除此員工？')) return;
-  emps=emps.filter(e=>e.id!==id);render();apiDelEmp(id);
+function startQuiz(){
+  cur=0; answers=new Array(questions.length).fill(null);
+  showSection('quiz'); renderQ();
 }
 
-function renderSum(){
-  const {y,m}=getYM(2),now=new Date(),monthEnd=new Date(y,m+1,0);
-  let h=`<colgroup>
-    <col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:11%">
-    <col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:11%">
-  </colgroup>
-  <thead>
-    <tr>
-      <th rowspan="2" style="vertical-align:middle">員工</th>
-      <th colspan="3" class="sec-head sec-div">請假</th>
-      <th colspan="2" class="sec-head sec-div">特休</th>
-      <th colspan="3" class="sec-head">補休</th>
-    </tr>
-    <tr>
-      <th>病假(時)</th><th>事假(時)</th><th class="sec-div">上課假</th>
-      <th>已用/總天數</th><th class="sec-div">重置日</th>
-      <th>本月增減</th><th>餘額</th><th>重置日</th>
-    </tr>
-  </thead><tbody>`;
-  const annotations=[];
-  emps.forEach((emp,ei)=>{
-    const ac=AVC[ei%AVC.length];
-    const periodEnd=monthEnd;
-    const {totalDays:annTotal,usedDays:annUsed,remainDays:annRemain,nextReset:annNext}=annLeaveState(emp,periodEnd);
-    const rc=annRemain>5?'rok':annRemain>0?'rlo':'rno';
-    const {bal:compBal,nextReset:compNext}=compBalState(emp,periodEnd);
-    const bc=compBal>=STD?'cpos':compBal>0?'':'cneg';
-    const mcomp=compInRange(emp.id,y,m,1,y,m,dim(y,m));
-    const cc=mcomp>0?'cpos':mcomp<0?'cneg':'';
-    const ms=monthSickHours(emp.id,y,m),mp=monthPersonalHours(emp.id,y,m),mc=countLMonth(emp.id,y,m,'上課假');
-    const annResets=annResetDates(emp.joinDate);
-    const annResetsThisMonth=annResets.filter(d=>d.getFullYear()===y&&d.getMonth()===m);
-    const compResets=compResetDates(emp.joinDate);
-    const compResetsThisMonth=compResets.filter(d=>d.getFullYear()===y&&d.getMonth()===m);
-    annResetsThisMonth.forEach(rDate=>{
-      const prevResets=annResets.filter(d=>d<rDate);
-      const prevReset=prevResets.length>0?prevResets[prevResets.length-1]:null;
-      const periodStart=prevReset||new Date(emp.joinDate);
-      const dayBeforeReset=new Date(rDate.getTime()-86400000);
-      const totalBeforeReset=annualDaysByMonths(svcMonths(emp.joinDate,periodStart));
-      const usedBeforeReset=countLInRange(emp.id,periodStart.getFullYear(),periodStart.getMonth(),periodStart.getDate(),dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate(),'特休');
-      const remainBeforeReset=Math.max(0,totalBeforeReset-usedBeforeReset);
-      const compPrevResets=compResets.filter(d=>d<rDate);
-      const compPrevReset=compPrevResets.length>0?compPrevResets[compPrevResets.length-1]:null;
-      const compBeforeReset=compPrevReset
-        ?compInRange(emp.id,compPrevReset.getFullYear(),compPrevReset.getMonth(),compPrevReset.getDate(),dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())
-        :+(emp.compBal+compInRange(emp.id,new Date(emp.joinDate).getFullYear(),new Date(emp.joinDate).getMonth(),new Date(emp.joinDate).getDate(),dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())).toFixed(1);
-      const deadlineStr=fmtDateFull(dayBeforeReset);
-      if(totalBeforeReset>0){
-        annotations.push({name:emp.name,deadlineDate:deadlineStr,annRemain:remainBeforeReset,compRemain:+compBeforeReset.toFixed(1),type:'both'});
-      } else {
-        annotations.push({name:emp.name,deadlineDate:deadlineStr,annRemain:null,compRemain:+compBeforeReset.toFixed(1),type:'comp_only'});
-      }
-    });
-    compResetsThisMonth.filter(cr=>!annResetsThisMonth.some(ar=>ar.getTime()===cr.getTime())).forEach(rDate=>{
-      const dayBeforeReset=new Date(rDate.getTime()-86400000);
-      const compPrevResets=compResets.filter(d=>d<rDate);
-      const compPrevReset=compPrevResets.length>0?compPrevResets[compPrevResets.length-1]:null;
-      const compBeforeReset=compPrevReset
-        ?compInRange(emp.id,compPrevReset.getFullYear(),compPrevReset.getMonth(),compPrevReset.getDate(),dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())
-        :+(emp.compBal+compInRange(emp.id,new Date(emp.joinDate).getFullYear(),new Date(emp.joinDate).getMonth(),new Date(emp.joinDate).getDate(),dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())).toFixed(1);
-      annotations.push({name:emp.name,deadlineDate:fmtDateFull(dayBeforeReset),annRemain:null,compRemain:+compBeforeReset.toFixed(1),type:'comp_only'});
-    });
-    h+=`<tr>
-      <td><span class="av" style="background:${ac[0]};color:${ac[1]}">${emp.name[0]}</span>${emp.name}
-        <span class="eb" onclick="openEmpModal(${emp.id})" title="編輯">✎</span></td>
-      <td>${ms}時</td><td>${mp}時</td>
-      <td class="sec-div">${mc}/${emp.classMax}天</td>
-      <td class="${rc}">${annUsed}/${annTotal}天</td>
-      <td class="sec-div">${annNext?fmtDateFull(annNext):'—'}</td>
-      <td class="${cc}"><b>${mcomp>=0?'+':''}${mcomp}</b></td>
-      <td class="${bc}"><b>${compBal}</b></td>
-      <td>${compNext?fmtDateFull(compNext):'—'}</td>
-    </tr>`;
-  });
-  h+='</tbody>';
-  document.getElementById('dtbl').innerHTML=h;
-  const box=document.getElementById('anno-box');
-  if(annotations.length===0){box.innerHTML='';return;}
-  box.innerHTML=annotations.map(a=>{
-    let txt=a.type==='both'
-      ?`<strong>${a.name}</strong> 本月特休、補休重置，於 <strong>${a.deadlineDate}</strong> 前剩餘特休 <strong>${a.annRemain} 天</strong>，補休 <strong>${a.compRemain} 小時</strong>。`
-      :`<strong>${a.name}</strong> 本月補休重置，於 <strong>${a.deadlineDate}</strong> 前剩餘補休 <strong>${a.compRemain} 小時</strong>。`;
-    return `<div class="anno">${txt}</div>`;
-  }).join('');
+function renderQ(){
+  const q=questions[cur];
+  document.getElementById('prog-fill').style.width=(cur/questions.length*100)+'%';
+  document.getElementById('prog-count').textContent=`${cur+1} / ${questions.length}`;
+  const bb=document.getElementById('back-btn');
+  if(cur===0){ bb.classList.add('invisible'); } else { bb.classList.remove('invisible'); }
+  const cb=document.getElementById('cont-btn');
+  cb.disabled=answers[cur]===null;
+  cb.textContent=cur===questions.length-1?'查看結果 →':'繼續 →';
+  document.getElementById('q-area').innerHTML=`
+    <div class="q-meta"><div class="q-num">0${cur+1}</div><div class="q-tag">${q.tag}</div></div>
+    <div class="q-text">${q.text}</div>
+    <div class="options-grid">
+      ${q.options.map((o,i)=>`
+        <button class="option-btn ${answers[cur]===i?'selected':''}" onclick="pick(${i})">
+          <span class="opt-letter">${o.l}</span>
+          <span class="opt-text">${o.t}</span>
+        </button>`).join('')}
+    </div>`;
 }
 
-function showPg(p,btn){
-  document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));
-  document.querySelectorAll('.tb').forEach(e=>e.classList.remove('on'));
-  document.getElementById('pg-'+p).classList.add('on');btn.classList.add('on');
-  if(p==='summary') renderSum();
-}
-function openEmpModal(id){
-  editEmpId=id||null;
-  const isEdit=id!=null;
-  document.getElementById('memp-title').textContent=isEdit?'編輯員工':'新增員工';
-  document.getElementById('e-save-btn').textContent=isEdit?'儲存':'新增';
-  if(isEdit){
-    const e=emps.find(x=>x.id===id);
-    document.getElementById('e-name').value=e.name;
-    document.getElementById('e-join').value=e.joinDate;
-    document.getElementById('e-classmax').value=e.classMax;
-    document.getElementById('e-compbal').value=e.compBal;
-    const {bal}=compBalState(e,new Date());
-    document.getElementById('e-compbal-hint').textContent=`目前實際補休餘額：${bal} 小時`;
-  } else {
-    ['e-name','e-join'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('e-classmax').value='2';
-    document.getElementById('e-compbal').value='0';
-    document.getElementById('e-compbal-hint').textContent='';
-  }
-  document.getElementById('memp').classList.add('on');
-}
-function closeEmpModal(){document.getElementById('memp').classList.remove('on');}
-function saveEmp(){
-  const n=document.getElementById('e-name').value.trim(),j=document.getElementById('e-join').value;
-  if(!n||!j){alert('請填寫姓名與到職日期');return;}
-  const cm=+document.getElementById('e-classmax').value||0,cb=parseFloat(document.getElementById('e-compbal').value)||0;
-  if(editEmpId!=null){
-    const e=emps.find(x=>x.id===editEmpId);
-    e.name=n;e.joinDate=j;e.classMax=cm;e.compBal=cb;
-    closeEmpModal();render();apiSaveEmp(e);
-  } else {
-    const newEmp={id:nid++,name:n,joinDate:j,classMax:cm,compBal:cb};
-    emps.push(newEmp);closeEmpModal();render();apiSaveEmp(newEmp);
-  }
+function pick(i){
+  answers[cur]=i;
+  document.querySelectorAll('.option-btn').forEach((b,idx)=>b.classList.toggle('selected',idx===i));
+  document.getElementById('cont-btn').disabled=false;
 }
 
-// ── Supabase API ──
-const SUPA_URL='https://hsinxzpvgnhccjccfprg.supabase.co';
-const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzaW54enB2Z25oY2NqY2NmcHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDYwNjMsImV4cCI6MjA5MjYyMjA2M30.1zv5Te938hMrGntDgolYcShYtlPdA2rJWZEYHtgq8Nc';
+function nextQ(){
+  if(answers[cur]===null)return;
+  if(cur<questions.length-1){cur++;renderQ();}
+  else showResult();
+}
 
-function supaHeaders(extra={}){
-  return {
-    'Content-Type':'application/json',
-    'apikey':SUPA_KEY,
-    'Authorization':`Bearer ${SUPA_KEY}`,
-    ...extra
+function prevQ(){ if(cur>0){cur--;renderQ();} }
+
+function showResult(){
+  const sc = calcScores(answers);
+  const total = sc.total;
+
+  let tier;
+  if(total >= 10) tier='A';
+  else if(total >= 7) tier='B';
+  else tier='C';
+
+  const td={
+    A:{label:'高度適合',title:'你已具備安妮需要的核心思維。',
+       body:`你不只對急救有興趣，也開始具備「救護醫療教育研發」需要的思維：看見系統、重視證據、願意把知識轉譯給大眾，也能接受作品被反覆修正。<br><br>這個實習讓你練習把急救問題看深、把內容做準、把教學做有效，並參與公共倡議。如果你正在尋找一個可以被拉高標準的暑假，歡迎申請。`},
+    B:{label:'適合，但標準會比你想像中高',title:'你有明確的急救興趣，這裡會挑戰你的邊界。',
+       body:`你已有不錯的學習動機，來到這裡後，你可能會發現：急救教育不只是會做技術，也不只是拍影片、辦活動，而是要思考每個內容背後的證據、教學方法與系統目標。<br><br>標準可能比你想像中高，但也正因為如此，會讓你在 1.5 個月內看見自己的成長。`},
+    C:{label:'潛力型｜這裡可能打開你的想像',title:'這個實習可能讓你找到新方向。',
+       body:`如果你目前只覺得「我對急救有興趣」，但還不確定未來方向，這個實習會帶你看見急救醫療不只有第一線救人，也包含教育、教材、研究、政策與倡議。<br><br>你不需要一開始就很厲害，但需要願意學、願意問，也願意在高標準下把作品做得比原本更好。`}
   };
+  const t=td[tier];
+
+  // 轉換為百分比顯示 (每個維度最高3)
+  const dimOrder = ['sys','grow','edu','ev'];
+  const pcts={};
+  dimOrder.forEach(k => { pcts[k] = Math.round((sc[k]/3)*100); });
+
+  document.getElementById('result-banner').innerHTML=`
+    <div class="result-eyebrow" style="margin:0">你的實習生適配報告</div>`;
+
+  document.getElementById('result-body').innerHTML=`
+    <div style="padding:4px 0 8px">
+      <div class="tier-badge tier-${tier}" style="margin-bottom:14px">${t.label}</div>
+      <div class="result-h1">${t.title}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">適配維度分析</div>
+      <div class="radar-inner">
+        <div style="flex-shrink:0">${buildRadar(pcts)}</div>
+        <div class="dims-wrap">
+          ${dimOrder.map(k=>`
+            <div class="dim-row">
+              <div class="dim-head"><span class="dim-name">${dimNames[k]}</span><span class="dim-pct">${pcts[k]}%</span></div>
+              <div class="dim-track"><div class="dim-fill" style="width:0%" data-target="${pcts[k]}%"></div></div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="text-card"><p>${t.body}</p></div>
+    <div class="prompt-card">
+      <h3>把你的檢核結果變成備審資料</h3>
+      <p>申請計畫請附上兩頁 A4 以內的簡歷，以及 500 字說明你想在「安妮怎麼了？」學到的內容。以下三個問題可以幫你找到方向：</p>
+      <div class="prompt-q"><span class="prompt-n">01</span><span>你的適配結果是哪一類？哪一題的選項最像你，為什麼？</span></div>
+      <div class="prompt-q"><span class="prompt-n">02</span><span>你希望在安妮被訓練的是哪一種能力？（對應你雷達圖中較低的維度）</span></div>
+      <div class="prompt-q"><span class="prompt-n">03</span><span>你自己的科系或背景，可以為急救教育帶來什麼不同的切入點？</span></div>
+    </div>
+    <div class="cta-row">
+      <a href="https://www.anne.education/internship.html" target="_blank" class="cta-primary">計畫詳情 →</a>
+      <button class="cta-primary" style="background:var(--navy)" onclick="startQuiz()">重新測驗</button>
+    </div>`;
+
+  showSection('result');
+  setTimeout(()=>{
+    document.querySelectorAll('.dim-fill').forEach(b=>b.style.width=b.dataset.target);
+  },200);
 }
 
-function setStatus(msg,isErr){
-  const el=document.getElementById('sync-status');
-  if(!el) return;
-  el.textContent=msg;el.style.color=isErr?'#b82020':'#1a7a50';el.style.opacity='1';
-  if(!isErr) setTimeout(()=>{el.style.opacity='0';},2500);
+function sendEmail(){
+  const sc = calcScores(answers);
+  const tier = sc.total>=10?'A（高度適合）':sc.total>=9?'B（適合，但標準會比你想像中高）':'C（潛力型）';
+  const dimOrder=['sys','grow','edu','ev'];
+  const dimNames2={sys:'系統視角',grow:'成長耐受度',edu:'教育轉譯',ev:'實證思維'};
+  const dimLines = dimOrder.map(k=>`${dimNames2[k]}：${Math.round((sc[k]/3)*100)}%`).join('　');
+  const answerLines = questions.map((q,i)=>{
+    const ai=answers[i];
+    const chosen = ai!==null ? `${q.options[ai].l}. ${q.options[ai].t}` : '（未作答）';
+    return `Q${i+1}（${q.tag}）：${chosen}`;
+  }).join('\n');
+
+  const body = `您好，
+
+我完成了安妮暑期實習生適配測驗，以下是我的結果：
+
+【適配等級】${tier}
+【總分】${sc.total.toFixed(1)} / 12
+
+【各維度分析】
+${dimLines}
+
+【答題紀錄】
+${answerLines}`;
+
+  const subject = encodeURIComponent('【暑期實習申請】安妮怎麼了？2025 暑期實習生計畫');
+  const encodedBody = encodeURIComponent(body);
+  window.location.href = `mailto:saveme@anne.education?subject=${subject}&body=${encodedBody}`;
 }
 
-const _debouncers={};
-function debounce(id,fn,delay=800){clearTimeout(_debouncers[id]);_debouncers[id]=setTimeout(fn,delay);}
-
-async function loadData(){
-  setStatus('載入中…');
-  try{
-    // 載入員工
-    const empRes=await fetch(`${SUPA_URL}/rest/v1/employees?select=*&order=id`,{
-      headers:supaHeaders({'Prefer':'return=representation'})
-    });
-    const employees=await empRes.json();
-    if(Array.isArray(employees)&&employees.length>0){
-      emps=employees.map(e=>({
-        id:e.id, name:e.name, joinDate:e.joinDate,
-        classMax:e.classMax||0, compBal:e.compBal||0
-      }));
-      nid=Math.max(...emps.map(e=>e.id))+1;
-    }
-
-    // 載入差勤
-    const attRes=await fetch(`${SUPA_URL}/rest/v1/attendance?select=*`,{
-      headers:supaHeaders({'Prefer':'return=representation'})
-    });
-    const attRows=await attRes.json();
-    att={};
-    if(Array.isArray(attRows)){
-      attRows.forEach(r=>{
-        att[r.att_key]={
-          leave:r.leave||'',
-          inH:(r.checkin!=null&&r.checkin!==0)?r.checkin:null,
-          outH:(r.checkout!=null&&r.checkout!==0)?r.checkout:null,
-          brk:(r.breaktime!=null&&r.breaktime!==0)?r.breaktime:null
-        };
-        if(att[r.att_key].leave==='') delete att[r.att_key].leave;
-      });
-    }
-    setStatus('已同步');
-  }catch(err){
-    setStatus('載入失敗：'+err.message,true);
-    console.error(err);
+function buildRadar(pcts){
+  // SVG 留足夠邊距讓標籤不被裁切
+  const size=300, cx=150, cy=150, r=80;
+  const dims=['sys','grow','edu','ev'];
+  const labels=['系統視角','成長耐受度','教育轉譯','實證思維'];
+  const n=dims.length;
+  function pt(i,val,rad){
+    const a=(i/n)*2*Math.PI-Math.PI/2;
+    return{x:cx+rad*val*Math.cos(a),y:cy+rad*val*Math.sin(a)};
   }
-  render();
+  let grid='';
+  [0.25,0.5,0.75,1].forEach(lv=>{
+    const ps=dims.map((_,i)=>pt(i,lv,r));
+    grid+=`<path d="${ps.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('')}Z" fill="none" stroke="#E0DDD8" stroke-width="1"/>`;
+  });
+  let axes='';
+  dims.forEach((_,i)=>{const e=pt(i,1,r);axes+=`<line x1="${cx}" y1="${cy}" x2="${e.x.toFixed(1)}" y2="${e.y.toFixed(1)}" stroke="#E0DDD8" stroke-width="1"/>`;});
+  const dp=dims.map((k,i)=>pt(i,(pcts[k]||0)/100,r));
+  const dd=dp.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('')+'Z';
+  let lbls='',dots='';
+  // 標籤放在 1.55 倍半徑處，確保不與圖形重疊也不被裁切
+  labels.forEach((l,i)=>{
+    const p=pt(i,1.55,r);
+    lbls+=`<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="#333" font-size="11" font-weight="700" font-family="'Noto Sans TC',sans-serif">${l}</text>`;
+  });
+  dp.forEach(p=>{dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="#2A5298"/>`;});
+  return`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${grid}${axes}<path d="${dd}" fill="rgba(42,82,152,0.1)" stroke="#2A5298" stroke-width="2"/>${dots}${lbls}</svg>`;
 }
-
-async function apiSetAtt(key,val){
-  setStatus('…');
-  debounce('att:'+key,async()=>{
-    const latest=att[key]||{};
-    const isEmpty=!latest.leave&&latest.inH==null&&latest.outH==null&&latest.brk==null;
-    setStatus('儲存中…');
-    try{
-      if(isEmpty){
-        // Delete the row
-        await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}`,{
-          method:'DELETE',headers:supaHeaders()
-        });
-      } else {
-        // Check if row exists first
-        const checkRes=await fetch(
-          `${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}&select=att_key`,
-          {headers:supaHeaders()}
-        );
-        const rows=await checkRes.json();
-        const exists=Array.isArray(rows)&&rows.length>0;
-
-        const body={
-          att_key:key,
-          leave:latest.leave||null,
-          checkin:latest.inH!=null?latest.inH:0,
-          checkout:latest.outH!=null?latest.outH:0,
-          breaktime:latest.brk!=null?latest.brk:0
-        };
-
-        if(exists){
-          // PATCH: update existing row with full latest state
-          await fetch(
-            `${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}`,
-            {method:'PATCH', headers:supaHeaders({'Prefer':'return=minimal'}), body:JSON.stringify(body)}
-          );
-        } else {
-          // INSERT: new row
-          await fetch(
-            `${SUPA_URL}/rest/v1/attendance`,
-            {method:'POST', headers:supaHeaders({'Prefer':'return=minimal'}), body:JSON.stringify(body)}
-          );
-        }
-      }
-      setStatus('已儲存 ✓');
-    }catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
-  },1500);
-}
-
-async function apiSaveEmp(emp){
-  setStatus('儲存中…');
-  try{
-    await fetch(`${SUPA_URL}/rest/v1/employees`,{
-      method:'POST',
-      headers:supaHeaders({'Prefer':'resolution=merge-duplicates'}),
-      body:JSON.stringify({
-        id:emp.id, name:emp.name, joinDate:emp.joinDate,
-        classMax:emp.classMax, compBal:emp.compBal
-      })
-    });
-    setStatus('已儲存 ✓');
-  }catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
-}
-
-async function apiDelEmp(id){
-  setStatus('儲存中…');
-  try{
-    await fetch(`${SUPA_URL}/rest/v1/employees?id=eq.${id}`,{
-      method:'DELETE',headers:supaHeaders()
-    });
-    await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=like.${id}-%`,{
-      method:'DELETE',headers:supaHeaders()
-    });
-    setStatus('已儲存 ✓');
-  }catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
-}
-
-initSel();loadData();
 </script>
 </body>
 </html>
