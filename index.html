@@ -87,6 +87,22 @@ input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 
 .bpri{padding:7px 20px;border-radius:7px;border:none;background:#111;color:#fff;font-size:13px;cursor:pointer}
 .bpri:hover{background:#333}
 .bcan{padding:7px 20px;border-radius:7px;border:1px solid #ccc;background:transparent;color:#666;font-size:13px;cursor:pointer}
+
+/* ── Login overlay ── */
+#login-screen{display:none;position:fixed;inset:0;background:#f3f3f1;z-index:9999;align-items:center;justify-content:center;flex-direction:column}
+#login-screen.on{display:flex}
+.login-box{background:#fff;border:1px solid #e0e0de;border-radius:14px;padding:36px 40px;width:340px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.10)}
+.login-box h2{font-size:20px;font-weight:600;margin-bottom:6px;color:#111}
+.login-box p{font-size:13px;color:#888;margin-bottom:24px}
+.login-box label{font-size:13px;color:#555;display:block;margin-bottom:6px}
+.login-box input[type=password]{width:100%;font-size:14px;padding:9px 12px;border-radius:8px;border:1.5px solid #ccc;background:#fafafa;height:auto;margin-bottom:8px}
+.login-box input[type=password]:focus{border-color:#111;outline:none;background:#fff}
+.login-err{font-size:12px;color:#b82020;min-height:18px;margin-bottom:8px}
+.login-btn{width:100%;padding:10px;border-radius:8px;border:none;background:#111;color:#fff;font-size:14px;font-weight:500;cursor:pointer;margin-top:4px}
+.login-btn:hover{background:#333}
+.logout-btn{font-size:12px;color:#aaa;cursor:pointer;border:none;background:transparent;padding:4px 8px;border-radius:4px;margin-left:8px}
+.logout-btn:hover{color:#333;background:#eee}
+
 /* ── Help page ── */
 .help-wrap{max-width:720px;display:flex;flex-direction:column;gap:28px;padding:4px 0 24px}
 .help-section{background:#fff;border:1px solid #e0e0de;border-radius:10px;padding:20px 24px}
@@ -103,121 +119,103 @@ input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 
 </style>
 </head>
 <body>
-<div class="app">
-<h1>差勤管理系統</h1>
-<div class="tabs">
-  <button class="tb on" onclick="showPg('schedule',this)">月份時間表</button>
-  <button class="tb" onclick="showPg('summary',this)">差勤總表</button>
-  <button class="tb" onclick="showPg('help',this)">使用說明</button>
-  <span id="sync-status" style="margin-left:auto;font-size:12px;color:#1a7a50;padding:10px 4px;transition:opacity 1s;opacity:0"></span>
-</div>
-<div class="pg on" id="pg-schedule">
-  <div class="topbar">
-    <label>月份</label>
-    <select id="sm" onchange="render()"></select>
-    <select id="sy" onchange="render()"></select>
-    <button class="bsm" onclick="openEmpModal()">＋ 新增員工</button>
-    <button class="bsm" id="lock-btn" onclick="toggleLock()" style="margin-left:4px"></button>
-    <span id="lock-notice" style="font-size:12px;color:#b87010;display:none">📋 本月已鎖定，僅供檢視</span>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen" class="on">
+  <div class="login-box">
+    <h2>差勤管理系統</h2>
+    <p>請輸入存取密碼以繼續</p>
+    <label>密碼</label>
+    <input type="password" id="pwd-input" placeholder="請輸入密碼"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" onclick="doLogin()">登入</button>
   </div>
-  <div class="topbar" style="margin-top:-6px;margin-bottom:10px">
-    <div class="legend">
-      <div class="leg"><div class="leg-dot" style="background:#fff;border:1px solid #ddd"></div>平日</div>
-      <div class="leg"><div class="leg-dot" style="background:#ffeae0"></div>假日／週末</div>
-      <div class="leg"><div class="leg-dot" style="background:#ddeeff"></div>今天</div>
-      <span class="tip" style="margin-left:8px">時間格式：HH:MM 或 HHMM（如 18:30 或 1830）；平日預設 10:00–19:00；假日空白；↑↓ 以 0.5h 調整</span>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div class="app" id="main-app" style="display:none">
+  <h1>差勤管理系統
+    <button class="logout-btn" onclick="doLogout()" title="登出">登出</button>
+  </h1>
+  <div class="tabs">
+    <button class="tb on" onclick="showPg('schedule',this)">月份時間表</button>
+    <button class="tb" onclick="showPg('summary',this)">差勤總表</button>
+    <button class="tb" onclick="showPg('help',this)">使用說明</button>
+    <span id="sync-status" style="margin-left:auto;font-size:12px;color:#1a7a50;padding:10px 4px;transition:opacity 1s;opacity:0"></span>
+  </div>
+
+  <div class="pg on" id="pg-schedule">
+    <div class="topbar">
+      <label>月份</label>
+      <select id="sm" onchange="render()"></select>
+      <select id="sy" onchange="render()"></select>
+      <button class="bsm" onclick="openEmpModal()">＋ 新增員工</button>
+      <button class="bsm" id="lock-btn" onclick="toggleLock()" style="margin-left:4px"></button>
+      <span id="lock-notice" style="font-size:12px;color:#b87010;display:none">📋 本月已鎖定，僅供檢視</span>
     </div>
-  </div>
-  <div class="sw"><table class="st" id="stbl"></table></div>
-</div>
-<div class="pg" id="pg-summary">
-  <div class="topbar">
-    <label>月份</label>
-    <select id="sm2" onchange="renderSum()"></select>
-    <select id="sy2" onchange="renderSum()"></select>
-  </div>
-  <div class="stitle" style="margin-bottom:6px">員工差勤明細</div>
-  <div class="hint">補休增減：平日＝淨工時−8h；假日/週末有打卡＝淨工時全計補休；全日「補休」假＝−8h。<br>特休用完後不可再選；上課假達到每月上限後不可再選。重置後天數及餘額依重置日切割計算。</div>
-  <div class="tw"><table class="dt" id="dtbl"></table></div>
-  <div class="anno-box" id="anno-box"></div>
-</div>
-<!-- HELP PAGE -->
-<div class="pg" id="pg-help">
-  <div class="help-wrap">
-    <div class="help-section">
-      <div class="help-title">月份時間表</div>
-      <div class="help-sub">基本操作</div>
-      <p class="help-p">選擇年份和月份後，表格會顯示該月每一天。每個格子由上到下分為：假別選單、上班時間、下班時間、休息時間、補休標籤。</p>
-      <div class="help-sub">假別說明</div>
-      <div class="help-table">
-        <div class="ht-row"><span class="bx b特休">特休</span><span>全日休假，時間欄位自動鎖定。用完後選項變灰無法選取。</span></div>
-        <div class="ht-row"><span class="bx b病假">病假</span><span>可全日（不填時間，計 8 小時）或半日（填入時間，依實際計算）。</span></div>
-        <div class="ht-row"><span class="bx b事假">事假</span><span>可全日（不填時間，計 8 小時）或半日（填入時間，依實際計算）。</span></div>
-        <div class="ht-row"><span class="bx b補休">補休</span><span>使用補休假，扣除 8 小時補休餘額。</span></div>
-        <div class="ht-row"><span class="bx b上課假">上課假</span><span>每月有上限，達到上限後選項變灰無法選取。</span></div>
+    <div class="topbar" style="margin-top:-6px;margin-bottom:10px">
+      <div class="legend">
+        <div class="leg"><div class="leg-dot" style="background:#fff;border:1px solid #ddd"></div>平日</div>
+        <div class="leg"><div class="leg-dot" style="background:#ffeae0"></div>假日／週末</div>
+        <div class="leg"><div class="leg-dot" style="background:#ddeeff"></div>今天</div>
+        <span class="tip" style="margin-left:8px">時間格式：HH:MM 或 HHMM（如 18:30 或 1830）；平日預設 10:00–19:00；假日空白；↑↓ 以 0.5h 調整</span>
       </div>
-      <div class="help-sub">時間輸入</div>
-      <ul class="help-list">
-        <li>支援格式：<code>10:00</code>、<code>1000</code>、<code>1030</code></li>
-        <li>平日預設：上班 10:00、下班 19:00、休息 01:00</li>
-        <li>鍵盤 ↑↓ 可以 30 分鐘為單位調整，游標點入欄位後使用</li>
-        <li>假日與週末欄位預設空白</li>
-      </ul>
-      <div class="help-sub">補休計算規則</div>
-      <ul class="help-list">
-        <li>平日：實際工時（下班 − 上班 − 休息）− 8 小時</li>
-        <li>假日／週末有填時間：實際工時全數計入補休</li>
-        <li>全日補休假：扣除 8 小時</li>
-        <li>選擇病假時補休增減為 ±0，不論是否有填時間</li>
-      </ul>
-      <div class="help-sub">顏色說明</div>
-      <ul class="help-list">
-        <li><span class="help-color" style="background:#fff;border:1px solid #ddd"></span>白底：平日</li>
-        <li><span class="help-color" style="background:#ffeae0"></span>淡桃底：假日／週末</li>
-        <li><span class="help-color" style="background:#ddeeff"></span>淡藍底：今天</li>
-      </ul>
     </div>
-    <div class="help-section">
-      <div class="help-title">差勤總表</div>
-      <p class="help-p">顯示每位員工當月的請假與補休統計，分為請假、特休、補休三個區塊。</p>
-      <div class="help-sub">請假區塊</div>
-      <ul class="help-list">
-        <li>病假以小時計算（全日 = 8 小時）</li>
-        <li>事假以天計算</li>
-        <li>上課假顯示「已用 / 上限」</li>
-      </ul>
-      <div class="help-sub">特休區塊</div>
-      <ul class="help-list">
-        <li>顯示「已用 / 總天數」</li>
-        <li>總天數依到職年資自動計算：<br>滿 6 個月 3 天、滿 1 年 7 天、滿 2 年 10 天、滿 3 年 14 天、滿 5 年 15 天、滿 10 年起每年 +1 天，上限 30 天</li>
-        <li>重置日：首次為到職後第 6 個月，之後每年到職週年日重置</li>
-      </ul>
-      <div class="help-sub">補休區塊</div>
-      <ul class="help-list">
-        <li>本月增減：當月加班或補休假的總時數變化</li>
-        <li>餘額：從上次補休重置日累積至今的補休時數</li>
-        <li>補休重置日為每年到職週年日，重置後餘額歸零</li>
-      </ul>
-      <div class="help-sub">本月重置通知</div>
-      <p class="help-p">若當月有員工的特休或補休到達重置日，表格下方會顯示通知，列出重置前的剩餘特休天數與補休時數。</p>
+    <div class="sw"><table class="st" id="stbl"></table></div>
+  </div>
+
+  <div class="pg" id="pg-summary">
+    <div class="topbar">
+      <label>月份</label>
+      <select id="sm2" onchange="renderSum()"></select>
+      <select id="sy2" onchange="renderSum()"></select>
     </div>
-    <div class="help-section">
-      <div class="help-title">員工管理</div>
-      <ul class="help-list">
-        <li>點擊員工名稱旁的 <b>✎</b> 可編輯員工資料</li>
-        <li>點擊 <b>✕</b> 可刪除員工（同時刪除該員工所有差勤記錄）</li>
-        <li>點擊頁面上方「＋ 新增員工」可新增</li>
-      </ul>
-      <div class="help-sub">欄位說明</div>
-      <div class="help-table">
-        <div class="ht-row"><span class="ht-label">到職日期</span><span>用於計算年資、特休天數及重置日</span></div>
-        <div class="ht-row"><span class="ht-label">上課假上限</span><span>每月可請上課假的天數上限</span></div>
-        <div class="ht-row"><span class="ht-label">補休餘額基數</span><span>系統建立前已累積的補休時數，僅在未達第一個補休重置日前有效</span></div>
+    <div class="stitle" style="margin-bottom:6px">員工差勤明細</div>
+    <div class="hint">補休增減：平日＝淨工時−8h；假日/週末有打卡＝淨工時全計補休；全日「補休」假＝−8h。<br>特休用完後不可再選；上課假達到每月上限後不可再選。重置後天數及餘額依重置日切割計算。</div>
+    <div class="tw"><table class="dt" id="dtbl"></table></div>
+    <div class="anno-box" id="anno-box"></div>
+  </div>
+
+  <!-- HELP PAGE -->
+  <div class="pg" id="pg-help">
+    <div class="help-wrap">
+      <div class="help-section">
+        <div class="help-title">月份時間表</div>
+        <div class="help-sub">基本操作</div>
+        <p class="help-p">選擇年份和月份後，表格會顯示該月每一天。每個格子由上到下分為：假別選單、上班時間、下班時間、休息時間、補休標籤。</p>
+        <div class="help-sub">假別說明</div>
+        <div class="help-table">
+          <div class="ht-row"><span class="bx b特休">特休</span><span>全日休假，時間欄位自動鎖定。用完後選項變灰無法選取。</span></div>
+          <div class="ht-row"><span class="bx b病假">病假</span><span>可全日（不填時間，計 8 小時）或半日（填入時間，依實際計算）。</span></div>
+          <div class="ht-row"><span class="bx b事假">事假</span><span>可全日（不填時間，計 8 小時）或半日（填入時間，依實際計算）。</span></div>
+          <div class="ht-row"><span class="bx b補休">補休</span><span>使用補休假，扣除 8 小時補休餘額。</span></div>
+          <div class="ht-row"><span class="bx b上課假">上課假</span><span>每月有上限，達到上限後選項變灰無法選取。</span></div>
+        </div>
+        <div class="help-sub">時間輸入</div>
+        <ul class="help-list">
+          <li>支援格式：<code>10:00</code>、<code>1000</code>、<code>1030</code></li>
+          <li>平日預設：上班 10:00、下班 19:00、休息 01:00</li>
+          <li>鍵盤 ↑↓ 可以 30 分鐘為單位調整，游標點入欄位後使用</li>
+          <li>假日與週末欄位預設空白</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <div class="help-title">差勤總表</div>
+        <p class="help-p">顯示每位員工當月的請假與補休統計。</p>
+      </div>
+      <div class="help-section">
+        <div class="help-title">員工管理</div>
+        <ul class="help-list">
+          <li>點擊員工名稱旁的 <b>✎</b> 可編輯員工資料</li>
+          <li>點擊 <b>✕</b> 可刪除員工（同時刪除該員工所有差勤記錄）</li>
+          <li>點擊頁面上方「＋ 新增員工」可新增</li>
+        </ul>
       </div>
     </div>
   </div>
-</div>
 </div><!-- end .app -->
+
 <div class="mbg" id="memp">
   <div class="md">
     <h3 id="memp-title">新增員工</h3>
@@ -232,11 +230,72 @@ input[type=text],input[type=date],input[type=number]{font-size:13px;padding:5px 
     </div>
   </div>
 </div>
+
 <script>
+// ══════════════════════════════════════════
+// ── 設定區 ──
+// ══════════════════════════════════════════
+
+// ⚠️ 請修改以下密碼（可以用中文或英文）
+// 登入密碼，存在 localStorage，關閉分頁後需重新輸入
+const APP_PASSWORD = 'anne2024';
+
+// Supabase 設定
+const SUPA_URL = 'https://hsinxzpvgnhccjccfprg.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzaW54enB2Z25oY2NqY2NmcHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDYwNjMsImV4cCI6MjA5MjYyMjA2M30.1zv5Te938hMrGntDgolYcShYtlPdA2rJWZEYHtgq8Nc';
+
+// ══════════════════════════════════════════
+// ── 登入邏輯 ──
+// ══════════════════════════════════════════
+const SESSION_KEY = 'att_session';
+
+function checkSession() {
+  const s = sessionStorage.getItem(SESSION_KEY);
+  if (s === 'ok') {
+    showApp();
+  } else {
+    document.getElementById('login-screen').classList.add('on');
+    document.getElementById('main-app').style.display = 'none';
+    setTimeout(() => document.getElementById('pwd-input').focus(), 100);
+  }
+}
+
+function doLogin() {
+  const input = document.getElementById('pwd-input').value;
+  const errEl = document.getElementById('login-err');
+  if (input === APP_PASSWORD) {
+    sessionStorage.setItem(SESSION_KEY, 'ok');
+    errEl.textContent = '';
+    showApp();
+    initSel();
+    loadData();
+  } else {
+    errEl.textContent = '密碼錯誤，請再試一次';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('login-screen').classList.add('on');
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('login-err').textContent = '';
+  setTimeout(() => document.getElementById('pwd-input').focus(), 100);
+}
+
+function showApp() {
+  document.getElementById('login-screen').classList.remove('on');
+  document.getElementById('main-app').style.display = 'block';
+}
+
+// ══════════════════════════════════════════
+// ── 系統常數 ──
+// ══════════════════════════════════════════
 const DEFAULT_IN=10.0,DEFAULT_OUT=19.0,DEFAULT_BRK=1.0,STD=8,STEP=0.5;
 const LT=['','特休','病假','事假','補休','上課假'];
 const AVC=[['#ddeeff','#1a5a9a'],['#eeecff','#4a3899'],['#e8f5e2','#2a5e15'],['#fef0da','#7a4a0a'],['#fde8f2','#7a2060'],['#f0f0ee','#444']];
-
 const TW_CAL={
   '2024-1-1':1,'2024-2-8':1,'2024-2-9':1,'2024-2-10':1,'2024-2-11':1,'2024-2-12':1,'2024-2-13':1,'2024-2-14':1,'2024-2-17':2,'2024-2-28':1,'2024-3-2':1,'2024-4-4':1,'2024-4-5':1,'2024-5-1':1,'2024-6-10':1,'2024-9-17':1,'2024-10-10':1,
   '2025-1-1':1,'2025-1-27':1,'2025-1-28':1,'2025-1-29':1,'2025-1-30':1,'2025-1-31':1,'2025-2-1':1,'2025-2-4':2,'2025-2-28':1,'2025-4-3':1,'2025-4-4':1,'2025-4-5':1,'2025-5-1':1,'2025-5-29':1,'2025-5-30':1,'2025-5-31':1,'2025-6-1':2,'2025-9-27':1,'2025-10-2':1,'2025-10-4':2,'2025-10-6':1,'2025-10-10':1,
@@ -249,70 +308,15 @@ function isWE(y,m,d){const w=new Date(y,m,d).getDay();return w===0||w===6;}
 function isOff(y,m,d){const v=calVal(y,m,d);if(v===2)return false;if(v===1)return true;return isWE(y,m,d);}
 function dim(y,m){return new Date(y,m+1,0).getDate();}
 function getDOW(y,m,d){return new Date(y,m,d).getDay();}
-
-function fmtH(h){
-  if(h===null||h===undefined||h==='') return '';
-  const hh=Math.floor(h),mm=Math.round((h-hh)*60);
-  return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
-}
-function parseH(s){
-  if(s===null||s===undefined||String(s).trim()==='') return null;
-  s=String(s).trim().replace(/\s/g,'');
-  let h,m=0;
-  if(s.includes(':')){const pts=s.split(':');h=parseInt(pts[0],10)||0;m=parseInt(pts[1],10)||0;}
-  else if(s.length===4&&/^\d{4}$/.test(s)){h=parseInt(s.slice(0,2),10);m=parseInt(s.slice(2),10);}
-  else if(s.length===3&&/^\d{3}$/.test(s)){h=parseInt(s.slice(0,1),10);m=parseInt(s.slice(1),10);}
-  else{const f=parseFloat(s);if(isNaN(f))return null;h=Math.floor(f);m=Math.round((f-h)*60);}
-  if(isNaN(h)||isNaN(m)) return null;
-  return Math.round((h+m/60)/STEP)*STEP;
-}
-
-function svcMonths(joinDate,ref){
-  const j=new Date(joinDate),r=new Date(ref);
-  const mos=(r.getFullYear()-j.getFullYear())*12+(r.getMonth()-j.getMonth());
-  return r.getDate()>=j.getDate()?mos:mos-1;
-}
-function annualDaysByMonths(mos){
-  if(mos<6) return 0;
-  if(mos<12) return 3;
-  const y=Math.floor(mos/12);
-  if(y<2) return 7;
-  if(y<3) return 10;
-  if(y<5) return 14;
-  if(y<10) return 15;
-  return Math.min(15+(y-10)+1,30);
-}
+function fmtH(h){if(h===null||h===undefined||h==='') return '';const hh=Math.floor(h),mm=Math.round((h-hh)*60);return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;}
+function parseH(s){if(s===null||s===undefined||String(s).trim()==='') return null;s=String(s).trim().replace(/\s/g,'');let h,m=0;if(s.includes(':')){const pts=s.split(':');h=parseInt(pts[0],10)||0;m=parseInt(pts[1],10)||0;}else if(s.length===4&&/^\d{4}$/.test(s)){h=parseInt(s.slice(0,2),10);m=parseInt(s.slice(2),10);}else if(s.length===3&&/^\d{3}$/.test(s)){h=parseInt(s.slice(0,1),10);m=parseInt(s.slice(1),10);}else{const f=parseFloat(s);if(isNaN(f))return null;h=Math.floor(f);m=Math.round((f-h)*60);}if(isNaN(h)||isNaN(m)) return null;return Math.round((h+m/60)/STEP)*STEP;}
+function svcMonths(joinDate,ref){const j=new Date(joinDate),r=new Date(ref);const mos=(r.getFullYear()-j.getFullYear())*12+(r.getMonth()-j.getMonth());return r.getDate()>=j.getDate()?mos:mos-1;}
+function annualDaysByMonths(mos){if(mos<6) return 0;if(mos<12) return 3;const y=Math.floor(mos/12);if(y<2) return 7;if(y<3) return 10;if(y<5) return 14;if(y<10) return 15;return Math.min(15+(y-10)+1,30);}
 function annualDays(emp,refDate){return annualDaysByMonths(svcMonths(emp.joinDate,refDate));}
-
-function annResetDates(joinDate){
-  const j=new Date(joinDate),resets=[];
-  resets.push(new Date(j.getFullYear(),j.getMonth()+6,j.getDate()));
-  for(let yr=1;yr<=50;yr++) resets.push(new Date(j.getFullYear()+yr,j.getMonth(),j.getDate()));
-  return resets;
-}
-function getResetInfo(emp,today){
-  const resets=annResetDates(emp.joinDate);
-  let lastReset=null,nextReset=null;
-  for(let i=0;i<resets.length;i++){
-    if(resets[i]<=today) lastReset=resets[i];
-    else{nextReset=resets[i];break;}
-  }
-  return {lastReset,nextReset};
-}
-function compResetDates(joinDate){
-  const j=new Date(joinDate),resets=[];
-  for(let yr=1;yr<=50;yr++) resets.push(new Date(j.getFullYear()+yr,j.getMonth(),j.getDate()));
-  return resets;
-}
-function getCompResetInfo(emp,today){
-  const resets=compResetDates(emp.joinDate);
-  let lastReset=null,nextReset=null;
-  for(let i=0;i<resets.length;i++){
-    if(resets[i]<=today) lastReset=resets[i];
-    else{nextReset=resets[i];break;}
-  }
-  return {lastReset,nextReset};
-}
+function annResetDates(joinDate){const j=new Date(joinDate),resets=[];resets.push(new Date(j.getFullYear(),j.getMonth()+6,j.getDate()));for(let yr=1;yr<=50;yr++) resets.push(new Date(j.getFullYear()+yr,j.getMonth(),j.getDate()));return resets;}
+function getResetInfo(emp,today){const resets=annResetDates(emp.joinDate);let lastReset=null,nextReset=null;for(let i=0;i<resets.length;i++){if(resets[i]<=today) lastReset=resets[i];else{nextReset=resets[i];break;}}return {lastReset,nextReset};}
+function compResetDates(joinDate){const j=new Date(joinDate),resets=[];for(let yr=1;yr<=50;yr++) resets.push(new Date(j.getFullYear()+yr,j.getMonth(),j.getDate()));return resets;}
+function getCompResetInfo(emp,today){const resets=compResetDates(emp.joinDate);let lastReset=null,nextReset=null;for(let i=0;i<resets.length;i++){if(resets[i]<=today) lastReset=resets[i];else{nextReset=resets[i];break;}}return {lastReset,nextReset};}
 function fmtDateFull(d){if(!d) return '—';return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;}
 
 let emps=[],att={},nid=1,editEmpId=null;
@@ -320,171 +324,36 @@ function K(e,y,m,d){return `${e}-${y}-${m}-${d}`;}
 
 // ── Lock management ──
 function lockKey(y,m){return `lock-${y}-${m}`;}
-function isMonthPast(y,m){
-  const now=new Date();
-  return y<now.getFullYear()||(y===now.getFullYear()&&m<now.getMonth());
-}
-function isLocked(y,m){
-  const k=lockKey(y,m);
-  const stored=localStorage.getItem(k);
-  if(stored!==null) return stored==='1'; // manual override
-  return isMonthPast(y,m); // default: past months locked
-}
-function toggleLock(){
-  const {y,m}=getYM(1);
-  const k=lockKey(y,m);
-  const current=isLocked(y,m);
-  localStorage.setItem(k,current?'0':'1');
-  render();
-}
-function updateLockUI(y,m){
-  const locked=isLocked(y,m);
-  const isPast=isMonthPast(y,m);
-  const btn=document.getElementById('lock-btn');
-  const notice=document.getElementById('lock-notice');
-  if(btn){
-    btn.style.display=isPast?'inline':'none';
-    btn.textContent=locked?'🔓 解鎖本月':'🔒 鎖定本月';
-    btn.style.color=locked?'#b87010':'#555';
-  }
-  if(notice) notice.style.display=(isPast&&locked)?'inline':'none';
-}
+function isMonthPast(y,m){const now=new Date();return y<now.getFullYear()||(y===now.getFullYear()&&m<now.getMonth());}
+function isLocked(y,m){const k=lockKey(y,m);const stored=localStorage.getItem(k);if(stored!==null) return stored==='1';return isMonthPast(y,m);}
+function toggleLock(){const {y,m}=getYM(1);const k=lockKey(y,m);const current=isLocked(y,m);localStorage.setItem(k,current?'0':'1');render();}
+function updateLockUI(y,m){const locked=isLocked(y,m);const isPast=isMonthPast(y,m);const btn=document.getElementById('lock-btn');const notice=document.getElementById('lock-notice');if(btn){btn.style.display=isPast?'inline':'none';btn.textContent=locked?'🔓 解鎖本月':'🔒 鎖定本月';btn.style.color=locked?'#b87010':'#555';}if(notice) notice.style.display=(isPast&&locked)?'inline':'none';}
 
-// Calculate sick leave hours for a day
-function daySickHours(eid,y,m,d){
-  const rec=att[K(eid,y,m,d)]||{};
-  if((rec.leave||'')!=='病假') return 0;
-  const hasTime=(rec.inH!=null||rec.outH!=null);
-  if(!hasTime) return STD; // full day = 8h
-  const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
-  const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
-  if(outH<=inH) return 0;
-  const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;
-  const workedH=Math.max(0,outH-inH-brk);
-  return +Math.max(0,STD-workedH).toFixed(1); // sick = 8 - worked
-}
-function monthSickHours(eid,y,m){
-  let total=0;
-  for(let d=1;d<=dim(y,m);d++) total+=daySickHours(eid,y,m,d);
-  return +total.toFixed(1);
-}
-
-// Calculate personal leave hours for a day (same logic as sick leave)
-function dayPersonalHours(eid,y,m,d){
-  const rec=att[K(eid,y,m,d)]||{};
-  if((rec.leave||'')!=='事假') return 0;
-  const hasTime=(rec.inH!=null||rec.outH!=null);
-  if(!hasTime) return STD; // full day = 8h
-  const inH=rec.inH!=null?rec.inH:DEFAULT_IN;
-  const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
-  if(outH<=inH) return 0;
-  const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;
-  const workedH=Math.max(0,outH-inH-brk);
-  return +Math.max(0,STD-workedH).toFixed(1); // personal = 8 - worked
-}
-function monthPersonalHours(eid,y,m){
-  let total=0;
-  for(let d=1;d<=dim(y,m);d++) total+=dayPersonalHours(eid,y,m,d);
-  return +total.toFixed(1);
-}
-
-function dayComp(eid,y,m,d){
-  const rec=att[K(eid,y,m,d)]||{};
-  const leave=rec.leave||'',off=isOff(y,m,d);
-  if(!off){
-    if(leave==='補休') return -STD;
-    // 病假/事假：comp is always 0 regardless of time
-    if(['特休','病假','事假','上課假'].includes(leave)) return 0;
-  }
-  const hasTime=(rec.inH!=null||rec.outH!=null);
-  if(!hasTime) return 0;
-  const inH=rec.inH!=null?rec.inH:DEFAULT_IN,outH=rec.outH!=null?rec.outH:DEFAULT_OUT;
-  if(outH<=inH) return 0;
-  const brk=rec.brk!=null?rec.brk:(off?0:DEFAULT_BRK);
-  const net=Math.max(0,outH-inH-brk);
-  if(off) return +net.toFixed(2);
-  return +(net-STD).toFixed(2);
-}
-
-function compInRange(eid,sy,sm,sd,ey,em,ed){
-  let total=0,cy=sy,cm=sm;
-  while(cy<ey||(cy===ey&&cm<=em)){
-    const days=dim(cy,cm),dStart=(cy===sy&&cm===sm)?sd:1,dEnd=(cy===ey&&cm===em)?ed:days;
-    for(let d=dStart;d<=dEnd;d++) total+=dayComp(eid,cy,cm,d);
-    cm++;if(cm>11){cm=0;cy++;}
-  }
-  return +total.toFixed(1);
-}
-
-function countLInRange(eid,sy,sm,sd,ey,em,ed,type){
-  let count=0,cy=sy,cm=sm;
-  while(cy<ey||(cy===ey&&cm<=em)){
-    const days=dim(cy,cm),dStart=(cy===sy&&cm===sm)?sd:1,dEnd=(cy===ey&&cm===em)?ed:days;
-    for(let d=dStart;d<=dEnd;d++){const r=att[K(eid,cy,cm,d)]||{};if((r.leave||'')===type)count++;}
-    cm++;if(cm>11){cm=0;cy++;}
-  }
-  return count;
-}
-function countL(eid,y,m,type){
-  let c=0;for(let d=1;d<=dim(y,m);d++){const r=att[K(eid,y,m,d)]||{};if((r.leave||'')===type)c++;}return c;
-}
-
-function annLeaveState(emp,periodEnd){
-  const allResets=annResetDates(emp.joinDate);
-  let lastReset=null,nextReset=null;
-  for(let i=0;i<allResets.length;i++){
-    if(allResets[i]<=periodEnd) lastReset=allResets[i];
-    else{nextReset=allResets[i];break;}
-  }
-  if(!lastReset) return {totalDays:0,usedDays:0,remainDays:0,nextReset};
-  const totalDays=annualDaysByMonths(svcMonths(emp.joinDate,lastReset));
-  const usedDays=countLInRange(emp.id,lastReset.getFullYear(),lastReset.getMonth(),lastReset.getDate(),periodEnd.getFullYear(),periodEnd.getMonth(),periodEnd.getDate(),'特休');
-  return {totalDays,usedDays,remainDays:Math.max(0,totalDays-usedDays),nextReset};
-}
-
-function compBalState(emp,periodEnd){
-  const allCompResets=compResetDates(emp.joinDate);
-  let lastReset=null,nextReset=null;
-  for(let i=0;i<allCompResets.length;i++){
-    if(allCompResets[i]<=periodEnd) lastReset=allCompResets[i];
-    else{nextReset=allCompResets[i];break;}
-  }
-  let bal;
-  if(!lastReset){
-    const j=new Date(emp.joinDate);
-    bal=+(emp.compBal+compInRange(emp.id,j.getFullYear(),j.getMonth(),j.getDate(),periodEnd.getFullYear(),periodEnd.getMonth(),periodEnd.getDate())).toFixed(1);
-  } else {
-    bal=compInRange(emp.id,lastReset.getFullYear(),lastReset.getMonth(),lastReset.getDate(),periodEnd.getFullYear(),periodEnd.getMonth(),periodEnd.getDate());
-  }
-  return {bal:+bal.toFixed(1),nextReset};
-}
-
+function daySickHours(eid,y,m,d){const rec=att[K(eid,y,m,d)]||{};if((rec.leave||'')!=='病假') return 0;const hasTime=(rec.inH!=null||rec.outH!=null);if(!hasTime) return STD;const inH=rec.inH!=null?rec.inH:DEFAULT_IN;const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;if(outH<=inH) return 0;const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;const workedH=Math.max(0,outH-inH-brk);return +Math.max(0,STD-workedH).toFixed(1);}
+function monthSickHours(eid,y,m){let total=0;for(let d=1;d<=dim(y,m);d++) total+=daySickHours(eid,y,m,d);return +total.toFixed(1);}
+function dayPersonalHours(eid,y,m,d){const rec=att[K(eid,y,m,d)]||{};if((rec.leave||'')!=='事假') return 0;const hasTime=(rec.inH!=null||rec.outH!=null);if(!hasTime) return STD;const inH=rec.inH!=null?rec.inH:DEFAULT_IN;const outH=rec.outH!=null?rec.outH:DEFAULT_OUT;if(outH<=inH) return 0;const brk=rec.brk!=null?rec.brk:DEFAULT_BRK;const workedH=Math.max(0,outH-inH-brk);return +Math.max(0,STD-workedH).toFixed(1);}
+function monthPersonalHours(eid,y,m){let total=0;for(let d=1;d<=dim(y,m);d++) total+=dayPersonalHours(eid,y,m,d);return +total.toFixed(1);}
+function dayComp(eid,y,m,d){const rec=att[K(eid,y,m,d)]||{};const leave=rec.leave||'',off=isOff(y,m,d);if(!off){if(leave==='補休') return -STD;if(['特休','病假','事假','上課假'].includes(leave)) return 0;}const hasTime=(rec.inH!=null||rec.outH!=null);if(!hasTime) return 0;const inH=rec.inH!=null?rec.inH:DEFAULT_IN,outH=rec.outH!=null?rec.outH:DEFAULT_OUT;if(outH<=inH) return 0;const brk=rec.brk!=null?rec.brk:(off?0:DEFAULT_BRK);const net=Math.max(0,outH-inH-brk);if(off) return +net.toFixed(2);return +(net-STD).toFixed(2);}
+function compInRange(eid,sy,sm,sd,ey,em,ed){let total=0,cy=sy,cm=sm;while(cy<ey||(cy===ey&&cm<=em)){const days=dim(cy,cm),dStart=(cy===sy&&cm===sm)?sd:1,dEnd=(cy===ey&&cm===em)?ed:days;for(let d=dStart;d<=dEnd;d++) total+=dayComp(eid,cy,cm,d);cm++;if(cm>11){cm=0;cy++;}}return +total.toFixed(1);}
+function countLInRange(eid,sy,sm,sd,ey,em,ed,type){let count=0,cy=sy,cm=sm;while(cy<ey||(cy===ey&&cm<=em)){const days=dim(cy,cm),dStart=(cy===sy&&cm===sm)?sd:1,dEnd=(cy===ey&&cm===em)?ed:days;for(let d=dStart;d<=dEnd;d++){const r=att[K(eid,cy,cm,d)]||{};if((r.leave||'')===type)count++;}cm++;if(cm>11){cm=0;cy++;}}return count;}
+function countL(eid,y,m,type){let c=0;for(let d=1;d<=dim(y,m);d++){const r=att[K(eid,y,m,d)]||{};if((r.leave||'')===type)c++;}return c;}
+function annLeaveState(emp,periodEnd){const allResets=annResetDates(emp.joinDate);let lastReset=null,nextReset=null;for(let i=0;i<allResets.length;i++){if(allResets[i]<=periodEnd) lastReset=allResets[i];else{nextReset=allResets[i];break;}}if(!lastReset) return {totalDays:0,usedDays:0,remainDays:0,nextReset};const totalDays=annualDaysByMonths(svcMonths(emp.joinDate,lastReset));const usedDays=countLInRange(emp.id,lastReset.getFullYear(),lastReset.getMonth(),lastReset.getDate(),periodEnd.getFullYear(),periodEnd.getMonth(),periodEnd.getDate(),'特休');return {totalDays,usedDays,remainDays:Math.max(0,totalDays-usedDays),nextReset};}
+function compBalState(emp,periodEnd){const allCompResets=compResetDates(emp.joinDate);let lastReset=null,nextReset=null;for(let i=0;i<allCompResets.length;i++){if(allCompResets[i]<=periodEnd) lastReset=allCompResets[i];else{nextReset=allCompResets[i];break;}}let bal;if(!lastReset){const j=new Date(emp.joinDate);bal=+(emp.compBal+compInRange(emp.id,j.getFullYear(),j.getMonth(),j.getDate(),periodEnd.getFullYear(),periodEnd.getMonth(),periodEnd.getDate())).toFixed(1);}else{bal=compInRange(emp.id,lastReset.getFullYear(),lastReset.getMonth(),lastReset.getDate(),periodEnd.getFullYear(),periodEnd.getMonth(),periodEnd.getDate());}return {bal:+bal.toFixed(1),nextReset};}
 function countLMonth(eid,y,m,type){return countL(eid,y,m,type);}
 
 function initSel(){
   const now=new Date(),cy=now.getFullYear(),cm=now.getMonth();
   const ML=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-  ['sm','sm2'].forEach(id=>{
-    const s=document.getElementById(id);
-    s.innerHTML=ML.map((l,i)=>`<option value="${i}"${i===cm?' selected':''}>${l}</option>`).join('');
-  });
-  ['sy','sy2'].forEach(id=>{
-    const s=document.getElementById(id);s.innerHTML='';
-    for(let y=cy-2;y<=cy+2;y++){
-      const o=document.createElement('option');o.value=y;o.textContent=y+'年';if(y===cy)o.selected=true;s.appendChild(o);
-    }
-  });
+  ['sm','sm2'].forEach(id=>{const s=document.getElementById(id);s.innerHTML=ML.map((l,i)=>`<option value="${i}"${i===cm?' selected':''}>${l}</option>`).join('');});
+  ['sy','sy2'].forEach(id=>{const s=document.getElementById(id);s.innerHTML='';for(let y=cy-2;y<=cy+2;y++){const o=document.createElement('option');o.value=y;o.textContent=y+'年';if(y===cy)o.selected=true;s.appendChild(o);}});
 }
-function getYM(n){
-  return n===1?{y:+document.getElementById('sy').value,m:+document.getElementById('sm').value}:{y:+document.getElementById('sy2').value,m:+document.getElementById('sm2').value};
-}
+function getYM(n){return n===1?{y:+document.getElementById('sy').value,m:+document.getElementById('sm').value}:{y:+document.getElementById('sy2').value,m:+document.getElementById('sm2').value};}
 
 function render(){
   const {y,m}=getYM(1),days=dim(y,m),now=new Date();
   const locked=isLocked(y,m);
   updateLockUI(y,m);
   const tbl=document.getElementById('stbl');
-  // Use monthEnd so special leave entered anywhere in the month is counted
   const monthEnd=new Date(y,m+1,0);
   const state={};
   emps.forEach(e=>{
@@ -527,8 +396,6 @@ function render(){
       mCompTotal+=comp;
       const cellCls=(off?'offday':'')+(td?(off?' tdy':'tdy'):'');
       const isFullDay=FULL_LEAVES.includes(leave);
-      const isSick=leave==='病假';
-      // placeholder: blank for offday, full-day leave, or sick leave (since time is optional)
       const phIn=(off||isFullDay)?'':fmtH(DEFAULT_IN);
       const phOut=(off||isFullDay)?'':fmtH(DEFAULT_OUT);
       const phBrk=(off||isFullDay)?'':fmtH(DEFAULT_BRK);
@@ -548,24 +415,21 @@ function render(){
         <div class="time-stack">
           <div class="time-field">
             <span class="time-lbl">上</span>
-            <input class="ti${storedIn!==null?' has-val':''}" type="text" maxlength="5"
-              placeholder="${phIn}" value="${storedIn!==null?fmtH(storedIn):''}"
+            <input class="ti${storedIn!==null?' has-val':''}" type="text" maxlength="5" placeholder="${phIn}" value="${storedIn!==null?fmtH(storedIn):''}"
               ${(isFullDay||locked)?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
               onblur="setTime(${emp.id},${y},${m},${d},'in',this.value)"
               onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'in')">
           </div>
           <div class="time-field">
             <span class="time-lbl">下</span>
-            <input class="ti${storedOut!==null?' has-val':''}" type="text" maxlength="5"
-              placeholder="${phOut}" value="${storedOut!==null?fmtH(storedOut):''}"
+            <input class="ti${storedOut!==null?' has-val':''}" type="text" maxlength="5" placeholder="${phOut}" value="${storedOut!==null?fmtH(storedOut):''}"
               ${(isFullDay||locked)?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
               onblur="setTime(${emp.id},${y},${m},${d},'out',this.value)"
               onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'out')">
           </div>
           <div class="time-field">
             <span class="time-lbl" style="color:#e0a060">休</span>
-            <input class="ti${storedBrk!==null?' has-val':''}" type="text" maxlength="5"
-              placeholder="${phBrk}" value="${storedBrk!==null?fmtH(storedBrk):''}"
+            <input class="ti${storedBrk!==null?' has-val':''}" type="text" maxlength="5" placeholder="${phBrk}" value="${storedBrk!==null?fmtH(storedBrk):''}"
               ${(isFullDay||locked)?'disabled style="background:#f4f4f2;color:#ccc;border-color:#eee"':''}
               onblur="setBreak(${emp.id},${y},${m},${d},this.value)"
               onkeydown="timeKey(event,this,${emp.id},${y},${m},${d},'brk')">
@@ -585,18 +449,16 @@ function render(){
     else if(mc<0) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">補休${mc}h</span>`);
     if(classUsed>=emp.classMax&&emp.classMax>0) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">上課假達上限</span>`);
     if(annExhausted) parts.push(`<span class="bx" style="background:#fde8e8;color:#8a1a1a">特休已用完</span>`);
-    // Check consecutive 7-day work warning
+    // Consecutive work warning
     const prevDays=6;
-    let streak=0, streakStart=null, warnings=[];
+    let streak=0,streakStart=null,warnings=[];
     const checkDays=[];
-    const prevM=m===0?11:m-1, prevY=m===0?y-1:y;
+    const prevM=m===0?11:m-1,prevY=m===0?y-1:y;
     const prevTotal=dim(prevY,prevM);
     for(let d=prevTotal-prevDays+1;d<=prevTotal;d++) checkDays.push({y:prevY,m:prevM,d});
     for(let d=1;d<=days;d++) checkDays.push({y,m,d});
-
     const flushStreak=(endDay)=>{
       if(streak>=7&&endDay){
-        // Only warn if streak overlaps with current month
         const endInMonth=(endDay.y===y&&endDay.m===m);
         const startInMonth=(streakStart.y===y&&streakStart.m===m);
         if(endInMonth||startInMonth){
@@ -605,9 +467,8 @@ function render(){
           warnings.push(`⚠ 連續上班 ${streak} 天（${startStr}–${endStr}）`);
         }
       }
-      streak=0; streakStart=null;
+      streak=0;streakStart=null;
     };
-
     checkDays.forEach(({y:cy,m:cm,d:cd},idx)=>{
       const off=isOff(cy,cm,cd);
       const rec=att[K(emp.id,cy,cm,cd)]||{};
@@ -616,20 +477,11 @@ function render(){
       let worked=false;
       if(!off) worked=!FULL.includes(leave);
       else worked=(rec.inH!=null||rec.outH!=null);
-
-      if(worked){
-        if(streak===0) streakStart={y:cy,m:cm,d:cd};
-        streak++;
-      } else {
-        flushStreak(idx>0?checkDays[idx-1]:null);
-      }
+      if(worked){if(streak===0) streakStart={y:cy,m:cm,d:cd};streak++;}
+      else{flushStreak(idx>0?checkDays[idx-1]:null);}
     });
-    // Flush last streak
     flushStreak(checkDays[checkDays.length-1]);
-
-    warnings.forEach(w=>{
-      parts.push(`<span class="bx" style="background:#fff0cc;color:#7a5000;border:1px solid #e8c840">${w}</span>`);
-    });
+    warnings.forEach(w=>{parts.push(`<span class="bx" style="background:#fff0cc;color:#7a5000;border:1px solid #e8c840">${w}</span>`);});
     row+=`<td class="mcc">${parts.join(' ')||'<span style="font-size:11px;color:#bbb">—</span>'}</td></tr>`;
     b+=row;
   });
@@ -660,32 +512,10 @@ function timeKey(e,el,eid,y,m,d,which){
 }
 
 const FULL_LEAVES=['特休','補休','上課假'];
-function setLeave(eid,y,m,d,val){
-  if(isLocked(y,m)) return;
-  const k=K(eid,y,m,d);if(!att[k])att[k]={};
-  att[k].leave=val;
-  if(FULL_LEAVES.includes(val)){att[k].inH=null;att[k].outH=null;att[k].brk=null;}
-  render();
-  apiSetAtt(k,att[k]);
-}
-function setBreak(eid,y,m,d,val){
-  if(isLocked(y,m)) return;
-  const k=K(eid,y,m,d);if(!att[k])att[k]={};
-  att[k].brk=parseH(val);
-  apiSetAtt(k,att[k]);
-  render();
-}
-function setTime(eid,y,m,d,which,val){
-  if(isLocked(y,m)) return;
-  const k=K(eid,y,m,d);if(!att[k])att[k]={};
-  att[k][which==='in'?'inH':'outH']=parseH(val);
-  apiSetAtt(k,att[k]);
-  render();
-}
-function delEmp(id){
-  if(!confirm('確定刪除此員工？')) return;
-  emps=emps.filter(e=>e.id!==id);render();apiDelEmp(id);
-}
+function setLeave(eid,y,m,d,val){if(isLocked(y,m)) return;const k=K(eid,y,m,d);if(!att[k])att[k]={};att[k].leave=val;if(FULL_LEAVES.includes(val)){att[k].inH=null;att[k].outH=null;att[k].brk=null;}render();apiSetAtt(k,att[k]);}
+function setBreak(eid,y,m,d,val){if(isLocked(y,m)) return;const k=K(eid,y,m,d);if(!att[k])att[k]={};att[k].brk=parseH(val);apiSetAtt(k,att[k]);render();}
+function setTime(eid,y,m,d,which,val){if(isLocked(y,m)) return;const k=K(eid,y,m,d);if(!att[k])att[k]={};att[k][which==='in'?'inH':'outH']=parseH(val);apiSetAtt(k,att[k]);render();}
+function delEmp(id){if(!confirm('確定刪除此員工？')) return;emps=emps.filter(e=>e.id!==id);render();apiDelEmp(id);}
 
 function renderSum(){
   const {y,m}=getYM(2),now=new Date(),monthEnd=new Date(y,m+1,0);
@@ -735,11 +565,8 @@ function renderSum(){
         ?compInRange(emp.id,compPrevReset.getFullYear(),compPrevReset.getMonth(),compPrevReset.getDate(),dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())
         :+(emp.compBal+compInRange(emp.id,new Date(emp.joinDate).getFullYear(),new Date(emp.joinDate).getMonth(),new Date(emp.joinDate).getDate(),dayBeforeReset.getFullYear(),dayBeforeReset.getMonth(),dayBeforeReset.getDate())).toFixed(1);
       const deadlineStr=fmtDateFull(dayBeforeReset);
-      if(totalBeforeReset>0){
-        annotations.push({name:emp.name,deadlineDate:deadlineStr,annRemain:remainBeforeReset,compRemain:+compBeforeReset.toFixed(1),type:'both'});
-      } else {
-        annotations.push({name:emp.name,deadlineDate:deadlineStr,annRemain:null,compRemain:+compBeforeReset.toFixed(1),type:'comp_only'});
-      }
+      if(totalBeforeReset>0){annotations.push({name:emp.name,deadlineDate:deadlineStr,annRemain:remainBeforeReset,compRemain:+compBeforeReset.toFixed(1),type:'both'});}
+      else{annotations.push({name:emp.name,deadlineDate:deadlineStr,annRemain:null,compRemain:+compBeforeReset.toFixed(1),type:'comp_only'});}
     });
     compResetsThisMonth.filter(cr=>!annResetsThisMonth.some(ar=>ar.getTime()===cr.getTime())).forEach(rDate=>{
       const dayBeforeReset=new Date(rDate.getTime()-86400000);
@@ -780,6 +607,7 @@ function showPg(p,btn){
   document.getElementById('pg-'+p).classList.add('on');btn.classList.add('on');
   if(p==='summary') renderSum();
 }
+
 function openEmpModal(id){
   editEmpId=id||null;
   const isEdit=id!=null;
@@ -816,10 +644,9 @@ function saveEmp(){
   }
 }
 
+// ══════════════════════════════════════════
 // ── Supabase API ──
-const SUPA_URL='https://hsinxzpvgnhccjccfprg.supabase.co';
-const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzaW54enB2Z25oY2NqY2NmcHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDYwNjMsImV4cCI6MjA5MjYyMjA2M30.1zv5Te938hMrGntDgolYcShYtlPdA2rJWZEYHtgq8Nc';
-
+// ══════════════════════════════════════════
 function supaHeaders(extra={}){
   return {
     'Content-Type':'application/json',
@@ -842,20 +669,14 @@ function debounce(id,fn,delay=800){clearTimeout(_debouncers[id]);_debouncers[id]
 async function loadData(){
   setStatus('載入中…');
   try{
-    // 載入員工
     const empRes=await fetch(`${SUPA_URL}/rest/v1/employees?select=*&order=id`,{
       headers:supaHeaders({'Prefer':'return=representation'})
     });
     const employees=await empRes.json();
     if(Array.isArray(employees)&&employees.length>0){
-      emps=employees.map(e=>({
-        id:e.id, name:e.name, joinDate:e.joinDate,
-        classMax:e.classMax||0, compBal:e.compBal||0
-      }));
+      emps=employees.map(e=>({id:e.id,name:e.name,joinDate:e.joinDate,classMax:e.classMax||0,compBal:e.compBal||0}));
       nid=Math.max(...emps.map(e=>e.id))+1;
     }
-
-    // 載入差勤
     const attRes=await fetch(`${SUPA_URL}/rest/v1/attendance?select=*`,{
       headers:supaHeaders({'Prefer':'return=representation'})
     });
@@ -888,39 +709,16 @@ async function apiSetAtt(key,val){
     setStatus('儲存中…');
     try{
       if(isEmpty){
-        // Delete the row
-        await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}`,{
-          method:'DELETE',headers:supaHeaders()
-        });
+        await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}`,{method:'DELETE',headers:supaHeaders()});
       } else {
-        // Check if row exists first
-        const checkRes=await fetch(
-          `${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}&select=att_key`,
-          {headers:supaHeaders()}
-        );
+        const checkRes=await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}&select=att_key`,{headers:supaHeaders()});
         const rows=await checkRes.json();
         const exists=Array.isArray(rows)&&rows.length>0;
-
-        const body={
-          att_key:key,
-          leave:latest.leave||null,
-          checkin:latest.inH!=null?latest.inH:0,
-          checkout:latest.outH!=null?latest.outH:0,
-          breaktime:latest.brk!=null?latest.brk:0
-        };
-
+        const body={att_key:key,leave:latest.leave||null,checkin:latest.inH!=null?latest.inH:0,checkout:latest.outH!=null?latest.outH:0,breaktime:latest.brk!=null?latest.brk:0};
         if(exists){
-          // PATCH: update existing row with full latest state
-          await fetch(
-            `${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}`,
-            {method:'PATCH', headers:supaHeaders({'Prefer':'return=minimal'}), body:JSON.stringify(body)}
-          );
+          await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=eq.${encodeURIComponent(key)}`,{method:'PATCH',headers:supaHeaders({'Prefer':'return=minimal'}),body:JSON.stringify(body)});
         } else {
-          // INSERT: new row
-          await fetch(
-            `${SUPA_URL}/rest/v1/attendance`,
-            {method:'POST', headers:supaHeaders({'Prefer':'return=minimal'}), body:JSON.stringify(body)}
-          );
+          await fetch(`${SUPA_URL}/rest/v1/attendance`,{method:'POST',headers:supaHeaders({'Prefer':'return=minimal'}),body:JSON.stringify(body)});
         }
       }
       setStatus('已儲存 ✓');
@@ -934,10 +732,7 @@ async function apiSaveEmp(emp){
     await fetch(`${SUPA_URL}/rest/v1/employees`,{
       method:'POST',
       headers:supaHeaders({'Prefer':'resolution=merge-duplicates'}),
-      body:JSON.stringify({
-        id:emp.id, name:emp.name, joinDate:emp.joinDate,
-        classMax:emp.classMax, compBal:emp.compBal
-      })
+      body:JSON.stringify({id:emp.id,name:emp.name,joinDate:emp.joinDate,classMax:emp.classMax,compBal:emp.compBal})
     });
     setStatus('已儲存 ✓');
   }catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
@@ -946,17 +741,16 @@ async function apiSaveEmp(emp){
 async function apiDelEmp(id){
   setStatus('儲存中…');
   try{
-    await fetch(`${SUPA_URL}/rest/v1/employees?id=eq.${id}`,{
-      method:'DELETE',headers:supaHeaders()
-    });
-    await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=like.${id}-%`,{
-      method:'DELETE',headers:supaHeaders()
-    });
+    await fetch(`${SUPA_URL}/rest/v1/employees?id=eq.${id}`,{method:'DELETE',headers:supaHeaders()});
+    await fetch(`${SUPA_URL}/rest/v1/attendance?att_key=like.${id}-%`,{method:'DELETE',headers:supaHeaders()});
     setStatus('已儲存 ✓');
   }catch(err){setStatus('儲存失敗：'+err.message,true);console.error(err);}
 }
 
-initSel();loadData();
+// ══════════════════════════════════════════
+// ── 啟動 ──
+// ══════════════════════════════════════════
+checkSession();
 </script>
 </body>
 </html>
